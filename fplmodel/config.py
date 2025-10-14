@@ -31,7 +31,17 @@ MIN_MATCHES_FOR_FEATURES = 2  # min previous matches required to generate a trai
 # Bias-correction (EMA) applied after each finished GW
 EMA_ALPHA = 0.35  # weight of the most recent residual
 
-# Model hyperparams (kept modest to run quickly on laptops)
+# Feature selection
+FEATURE_CORRELATION_THRESHOLD = 0.95
+FEATURE_MIN_VARIANCE = 1e-6  # drop features with (near) zero variance
+
+# Hyperparameter tuning
+ENABLE_HYPERPARAM_TUNING = True
+HYPERPARAM_TUNING_MIN_SAMPLES = 300
+HYPERPARAM_TUNING_ITER = 12
+HYPERPARAM_TUNING_CV = 3
+
+# Model hyperparams (baseline defaults; tuning will explore around these)
 REG_PARAMS = dict(  # HistGradientBoostingRegressor
     max_depth=6,
     max_iter=300,
@@ -48,6 +58,21 @@ CLF_PARAMS = dict(  # HistGradientBoostingClassifier
     l2_regularization=0.0,
     random_state=RANDOM_SEED,
 )
+
+REG_PARAM_DISTRIBUTIONS = {
+    "est__max_depth": [4, 6, 8, None],
+    "est__learning_rate": [0.04, 0.06, 0.08, 0.12],
+    "est__max_iter": [250, 300, 350, 400],
+    "est__min_samples_leaf": [10, 20, 30, 40],
+    "est__l2_regularization": [0.0, 0.05, 0.1, 0.3],
+}
+CLF_PARAM_DISTRIBUTIONS = {
+    "est__max_depth": [4, 6, 8, None],
+    "est__learning_rate": [0.04, 0.06, 0.08, 0.12],
+    "est__max_iter": [200, 250, 300, 350],
+    "est__min_samples_leaf": [10, 20, 30, 40],
+    "est__l2_regularization": [0.0, 0.05, 0.1, 0.3],
+}
 
 # Team selection
 BUDGET_MILLIONS = 100.0  # total budget for the full 15-player squad

@@ -1,5 +1,5 @@
-player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order
-10,Myles Lewis-Skelly,Arsenal,1,2,5.2,1.4156118419496635,0,1,0,1
-100,Eli Junior Kroupi,Bournemouth,4,4,4.5,0.31594075668427585,0,1,0,2
-135,Yoane Wissa,Newcastle,15,4,7.4,0.315940737410991,0,1,0,3
-101,Caoimhín Kelleher,Brentford,5,1,4.5,3.3570520956144336,0,1,0,4
+player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
+10,Myles Lewis-Skelly,Arsenal,1,2,5.2,1.3540830335381524,0,1,0,1,FUL (A)
+100,Eli Junior Kroupi,Bournemouth,4,4,4.5,0.31432966945238433,0,1,0,2,CRY (A)
+135,Yoane Wissa,Newcastle,15,4,7.4,0.31432957128779665,0,1,0,3,BHA (A)
+1,David Raya Martín,Arsenal,1,1,5.7,6.20588188028845,0,1,0,4,FUL (A)
