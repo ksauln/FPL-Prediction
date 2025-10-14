@@ -7,7 +7,11 @@ from fplmodel.config import RAW_DIR, PROCESSED_DIR, OUTPUTS_DIR, MODELS_DIR, FOR
 from fplmodel.config import MAX_TRAIN_GW
 from fplmodel.data_pull import fetch_bootstrap_static, fetch_fixtures_all, bulk_fetch_player_histories
 from fplmodel.data_cleaning import normalize_bootstrap
-from fplmodel.features import build_training_and_pred_frames, expand_for_double_gw
+from fplmodel.features import (
+    build_training_and_pred_frames,
+    expand_for_double_gw,
+    log_model_feature_weights,
+)
 from fplmodel.model import train_models, predict_expected_points
 from fplmodel.evaluation import evaluate_last_finished_gw_and_update_state
 from fplmodel.state import ModelState
@@ -99,7 +103,13 @@ def run_pipeline(force_refetch: bool = False):
             errors="ignore",
         )
         logger.info("Training models with %d features", train_features.shape[1])
+        logger.info(
+            "Training feature columns: %s",
+            ", ".join(train_features.columns.astype(str)),
+        )
         clf, reg = train_models(train_features, y_train)
+        log_model_feature_weights(logger, train_features.columns, reg, model_label="regressor")
+        log_model_feature_weights(logger, train_features.columns, clf, model_label="classifier")
         logger.info("Model training complete")
 
         # 6) Predict EP for next GW

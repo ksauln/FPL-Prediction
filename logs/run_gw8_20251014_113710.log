@@ -1,0 +1,46 @@
+2025-10-14 11:37:10,307 [INFO] fplmodel - Logging initialised. Writing to /Users/kyle/Documents/FPL-Prediction/logs/run_20251014_113710.log
+2025-10-14 11:37:10,308 [INFO] fplmodel - Starting pipeline run (force_refetch=False)
+2025-10-14 11:37:10,308 [INFO] fplmodel - Fetching bootstrap static data...
+2025-10-14 11:37:10,326 [INFO] fplmodel - Fetching fixtures data...
+2025-10-14 11:37:10,341 [INFO] fplmodel - Loaded normalised frames: 743 elements, 20 teams, 38 events
+2025-10-14 11:37:10,342 [INFO] fplmodel - Next gameweek: 8 | Last finished gameweek: 7
+2025-10-14 11:37:10,342 [INFO] fplmodel - Renaming log file to highlight gameweek 8
+2025-10-14 11:37:10,343 [INFO] fplmodel - Log file renamed to /Users/kyle/Documents/FPL-Prediction/logs/run_gw8_20251014_113710.log
+2025-10-14 11:37:10,343 [INFO] fplmodel - Fetching player histories for 743 players (force_refetch=False)
+2025-10-14 11:37:10,508 [INFO] fplmodel - Loading 743 player history files from /Users/kyle/Documents/FPL-Prediction/data/raw
+2025-10-14 11:37:10,618 [INFO] fplmodel - Built player histories dataframe with 5073 rows
+2025-10-14 11:37:11,772 [INFO] fplmodel - Prepared features: X_train=(3588, 36), y_train=3588, X_pred=(743, 42)
+2025-10-14 11:37:11,772 [INFO] fplmodel - Training models with 36 features
+2025-10-14 11:37:14,661 [INFO] fplmodel - Estimator HistGradientBoostingRegressor for regressor does not expose feature_importances_; skipping logging.
+2025-10-14 11:37:14,661 [INFO] fplmodel - Estimator HistGradientBoostingClassifier for classifier does not expose feature_importances_; skipping logging.
+2025-10-14 11:37:14,661 [INFO] fplmodel - Model training complete
+2025-10-14 11:37:14,739 [INFO] fplmodel - Generated baseline predictions for 743 players
+2025-10-14 11:37:14,741 [INFO] fplmodel - Applied fixture multipliers; average EP now 1.65
+2025-10-14 11:37:14,742 [INFO] fplmodel - Top 5 expected point predictions: Antoine Semenyo (18.50); Donyell Malen (15.58); Bruno Guimarães Rodriguez Moura (14.11); Mohammed Kudus (12.82); Joško Gvardiol (12.29)
+2025-10-14 11:37:14,800 [INFO] fplmodel - Residuals computed for 743 players in GW 7
+2025-10-14 11:37:14,800 [INFO] fplmodel - Selecting best XI from 743 candidates
+2025-10-14 11:37:15,524 [INFO] fplmodel - Selected squad: total cost 88.0M | starting cost 66.4M | bench cost 21.6M
+2025-10-14 11:37:15,524 [INFO] fplmodel - Projected points: XI 137.26 | Captain included 155.76 | Bench 4.72
+2025-10-14 11:37:15,524 [INFO] fplmodel - Captain: Antoine Semenyo
+2025-10-14 11:37:15,524 [INFO] fplmodel - XI | Senne Lammens (Man Utd) - 9.10 pts | 5.0M
+2025-10-14 11:37:15,524 [INFO] fplmodel - XI | Joško Gvardiol (Man City) - 12.29 pts | 5.9M
+2025-10-14 11:37:15,524 [INFO] fplmodel - XI | Jurriën Timber (Arsenal) - 11.70 pts | 5.9M
+2025-10-14 11:37:15,524 [INFO] fplmodel - XI | Dan Burn (Newcastle) - 11.37 pts | 5.1M
+2025-10-14 11:37:15,524 [INFO] fplmodel - XI | Jan Paul van Hecke (Brighton) - 11.20 pts | 4.4M
+2025-10-14 11:37:15,524 [INFO] fplmodel - XI | Antoine Semenyo (Bournemouth) - 18.50 pts | 7.9M
+2025-10-14 11:37:15,524 [INFO] fplmodel - XI | Donyell Malen (Aston Villa) - 15.58 pts | 5.1M
+2025-10-14 11:37:15,524 [INFO] fplmodel - XI | Bruno Guimarães Rodriguez Moura (Newcastle) - 14.11 pts | 6.5M
+2025-10-14 11:37:15,525 [INFO] fplmodel - XI | Mohammed Kudus (Spurs) - 12.82 pts | 6.8M
+2025-10-14 11:37:15,525 [INFO] fplmodel - XI | Declan Rice (Arsenal) - 11.49 pts | 6.5M
+2025-10-14 11:37:15,525 [INFO] fplmodel - XI | Benjamin Sesko (Man Utd) - 9.09 pts | 7.3M
+2025-10-14 11:37:15,525 [INFO] fplmodel - Bench 1 | Myles Lewis-Skelly (Arsenal) - 1.41 pts
+2025-10-14 11:37:15,525 [INFO] fplmodel - Bench 2 | Eli Junior Kroupi (Bournemouth) - 0.31 pts
+2025-10-14 11:37:15,525 [INFO] fplmodel - Bench 3 | Yoane Wissa (Newcastle) - 0.31 pts
+2025-10-14 11:37:15,525 [INFO] fplmodel - Bench 4 | Caoimhín Kelleher (Brentford) - 2.70 pts
+2025-10-14 11:37:15,530 [INFO] fplmodel - Predictions saved to /Users/kyle/Documents/FPL-Prediction/outputs/predictions_gw8.csv
+2025-10-14 11:37:15,531 [INFO] fplmodel - Starting XI saved to /Users/kyle/Documents/FPL-Prediction/outputs/starting_xi_gw8.csv
+2025-10-14 11:37:15,531 [INFO] fplmodel - Bench saved to /Users/kyle/Documents/FPL-Prediction/outputs/bench_gw8.csv
+2025-10-14 11:37:15,531 [INFO] fplmodel - Best XI JSON saved to /Users/kyle/Documents/FPL-Prediction/outputs/best_xi_gw8.json
+2025-10-14 11:37:15,872 [INFO] fplmodel - Best XI graphic generated at /Users/kyle/Documents/FPL-Prediction/outputs/best_xi_gw8.png
+2025-10-14 11:37:15,874 [INFO] fplmodel - Residuals saved to /Users/kyle/Documents/FPL-Prediction/outputs/residuals_gw7.csv
+2025-10-14 11:37:15,874 [INFO] fplmodel - Pipeline complete for GW 8

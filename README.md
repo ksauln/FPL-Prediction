@@ -1,6 +1,6 @@
 # FPL Expected Points (EP) Pipeline — Modular, Local-Friendly
 
-This repo is a **from-scratch**, modular Fantasy Premier League prediction system that:
+This repo is a modular Fantasy Premier League prediction system that:
 - pulls data from the **official FPL API**,
 - cleans and engineers features,
 - trains **tabular ML models** (gradient-boosted trees) to predict player **expected points**,
