@@ -17,6 +17,11 @@ def evaluate_last_finished_gw_and_update_state(
     if eval_rows.empty:
         return pd.DataFrame()
 
+    # Ensure we have element_type metadata; if histories lack it, merge from provided features frame.
+    if "element_type" not in eval_rows.columns:
+        meta_map = X_train_like[["player_id", "element_type"]].drop_duplicates()
+        eval_rows = eval_rows.merge(meta_map, on="player_id", how="left")
+
     # X_train_like contains engineered features up to last_finished_gw. We need to match eval_rows players to their latest feature row (gw-1).
     # This is already provided by X_train_like: it's the same schema as training features. We'll just pick by player_id.
     meta_cols = ["player_id", "element_type"]

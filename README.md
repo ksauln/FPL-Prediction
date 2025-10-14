@@ -27,7 +27,9 @@ python main.py
 
 Artifacts (written to `outputs/`):
 - `predictions_gw<N>.csv` – expected points for each player for the **next** GW.
-- `best_xi_gw<N>.json` – selected **starting XI** and captain with total expected points and cost.
+- `starting_xi_gw<N>.csv` – tabular view of the selected **starting XI** (includes captain flag, costs, EP).
+- `bench_gw<N>.csv` – ordered substitutes with costs and expected points.
+- `best_xi_gw<N>.json` – structured full squad (XI + bench) with totals for cost and expected points.
 - `residuals_gw<M>.csv` – residuals (actual - predicted) for the **last finished** GW, used to update EMA biases.
 
 ---

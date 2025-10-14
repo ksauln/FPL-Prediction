@@ -1,0 +1,16 @@
+# Virtual environments
+fpl_venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment / secret files
+.env
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# macOS files
+.DS_Store

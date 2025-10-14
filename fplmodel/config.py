@@ -10,6 +10,7 @@ RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
 MODELS_DIR = PROJECT_ROOT / "models"
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
+LOGS_DIR = PROJECT_ROOT / "logs"
 CACHE_DIR = PROJECT_ROOT / "cache"
 
 # --- API Endpoints (official FPL)
@@ -49,8 +50,19 @@ CLF_PARAMS = dict(  # HistGradientBoostingClassifier
 )
 
 # Team selection
-BUDGET_MILLIONS = 100.0  # total budget for XI
-FORMATION = {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3}  # standard 3-4-3
+BUDGET_MILLIONS = 100.0  # total budget for the full 15-player squad
+FORMATION = {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3}  # starting XI shape
+FORMATION_OPTIONS = [
+    FORMATION,
+    {"GK": 1, "DEF": 3, "MID": 5, "FWD": 2},  # 3-5-2
+    {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2},  # 4-4-2
+    {"GK": 1, "DEF": 4, "MID": 5, "FWD": 1},  # 4-5-1
+    {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3},  # 4-3-3
+    {"GK": 1, "DEF": 5, "MID": 3, "FWD": 2},  # 5-3-2
+]
+SQUAD_POSITION_LIMITS = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
+BENCH_SIZE = 4
+BENCH_GK_COUNT = 1
 MAX_PER_TEAM = 3
 
 # Training window: set None to use all finished GWs

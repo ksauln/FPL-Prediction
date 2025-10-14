@@ -47,6 +47,9 @@ def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, P
     clf.fit(X_train, y_start)
     reg.fit(X_train, y_train)
 
+    # Ensure model directory exists before persisting artifacts
+    CLF_PATH.parent.mkdir(parents=True, exist_ok=True)
+
     joblib.dump(clf, CLF_PATH)
     joblib.dump(reg, REG_PATH)
     return clf, reg
@@ -63,11 +66,11 @@ def predict_expected_points(
     state: ModelState,
 ) -> pd.DataFrame:
     """
-    Input contains meta columns: player_id, full_name, now_cost_millions, team_id, element_type
+    Input contains meta columns: player_id, full_name, team_name, now_cost_millions, team_id, element_type
     plus same feature columns used during training.
     Returns a DataFrame with expected_points and bias-corrected EP.
     """
-    meta_cols = ["player_id", "full_name", "now_cost_millions", "team_id", "element_type"]
+    meta_cols = ["player_id", "full_name", "team_name", "now_cost_millions", "team_id", "element_type"]
     meta = X_meta_and_feats[meta_cols].copy()
     feats = X_meta_and_feats.drop(columns=meta_cols)
 
