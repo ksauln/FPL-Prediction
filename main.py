@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import defaultdict
 import json
 import os
 import pandas as pd
@@ -20,6 +21,42 @@ from fplmodel.logging_utils import configure_run_logger, update_log_filename_for
 
 from fplmodel.team_picker import pick_best_xi
 from fplmodel.display import create_best_xi_graphic
+
+
+def build_fixture_labels(fixtures_df: pd.DataFrame, teams_df: pd.DataFrame, next_gw: int) -> dict[int, str]:
+    """
+    Map each team_id to a formatted opponent string for the upcoming gameweek.
+    Handles blank and double gameweeks by joining multiple fixtures with ' / '.
+    """
+    if fixtures_df is None or fixtures_df.empty:
+        return {}
+    if "event" not in fixtures_df.columns:
+        return {}
+    gw_fixtures = fixtures_df[fixtures_df["event"] == next_gw]
+    if gw_fixtures.empty:
+        return {}
+
+    if "team_id" not in teams_df.columns:
+        return {}
+    name_col = "short_name" if "short_name" in teams_df.columns else "name"
+    team_name_map = teams_df.set_index("team_id")[name_col].to_dict()
+
+    fixtures_map: dict[int, list[str]] = defaultdict(list)
+    for _, fixture in gw_fixtures.iterrows():
+        team_h = fixture.get("team_h")
+        team_a = fixture.get("team_a")
+        if pd.isna(team_h) or pd.isna(team_a):
+            continue
+        team_h = int(team_h)
+        team_a = int(team_a)
+        opponent_for_home = team_name_map.get(team_a)
+        opponent_for_away = team_name_map.get(team_h)
+        if opponent_for_home:
+            fixtures_map[team_h].append(f"{opponent_for_home} (H)")
+        if opponent_for_away:
+            fixtures_map[team_a].append(f"{opponent_for_away} (A)")
+
+    return {team_id: " / ".join(parts) for team_id, parts in fixtures_map.items()}
 
 def run_pipeline(force_refetch: bool = False):
     logger, file_handler, log_path = configure_run_logger()
@@ -102,6 +139,7 @@ def run_pipeline(force_refetch: bool = False):
             columns=["player_id", "full_name", "now_cost_millions", "team_id", "element_type"],
             errors="ignore",
         )
+        feature_columns = list(train_features.columns)
         logger.info("Training models with %d features", train_features.shape[1])
         logger.info(
             "Training feature columns: %s",
@@ -132,27 +170,7 @@ def run_pipeline(force_refetch: bool = False):
             logger.info("Top 5 expected point predictions: %s", "; ".join(top_preds))
 
         # 8) Evaluate last finished GW and update biases (EMA)
-        train_like = X_pred[
-            ["player_id", "element_type"]
-            + [
-                c
-                for c in X_pred.columns
-                if c.endswith("_lag1")
-                or "_ma" in c
-                or c
-                in [
-                    "was_home",
-                    "team_strength_overall",
-                    "team_attack_home",
-                    "team_attack_away",
-                    "team_def_home",
-                    "team_def_away",
-                    "opp_strength_overall",
-                    "player_bias",
-                    "pos_bias",
-                ]
-            ]
-        ].copy()
+        train_like = X_pred[["player_id", "element_type"] + feature_columns].copy()
         res_df = evaluate_last_finished_gw_and_update_state(
             clf, reg, train_like, histories_df, last_finished_gw, state
         )
@@ -173,6 +191,13 @@ def run_pipeline(force_refetch: bool = False):
             team["starting_cost"],
             team["bench_cost"],
         )
+        fixture_labels = build_fixture_labels(fixtures_df, teams_df, next_gw)
+        if fixture_labels:
+            for section in ("squad", "bench"):
+                for player in team.get(section, []):
+                    team_id = player.get("team_id")
+                    if team_id in fixture_labels:
+                        player["next_fixture"] = fixture_labels[team_id]
         logger.info(
             "Projected points: XI %.2f | Captain included %.2f | Bench %.2f",
             team["expected_points_without_captain"],

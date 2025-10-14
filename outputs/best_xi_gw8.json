@@ -7,46 +7,11 @@
       "team_id": 14,
       "element_type": 1,
       "now_cost_millions": 5.0,
-      "expected_points": 9.103747002251486,
+      "expected_points": 9.07118955902223,
       "starting": 1,
       "bench": 0,
-      "captain": 0
-    },
-    {
-      "player_id": 403,
-      "full_name": "Jo\u0161ko Gvardiol",
-      "team_name": "Man City",
-      "team_id": 13,
-      "element_type": 2,
-      "now_cost_millions": 5.9,
-      "expected_points": 12.182501385057224,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0
-    },
-    {
-      "player_id": 476,
-      "full_name": "Dan Burn",
-      "team_name": "Newcastle",
-      "team_id": 15,
-      "element_type": 2,
-      "now_cost_millions": 5.1,
-      "expected_points": 11.873191574215427,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0
-    },
-    {
-      "player_id": 151,
-      "full_name": "Jan Paul van Hecke",
-      "team_name": "Brighton",
-      "team_id": 6,
-      "element_type": 2,
-      "now_cost_millions": 4.4,
-      "expected_points": 11.30996043122378,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0
+      "captain": 0,
+      "next_fixture": "LIV (A)"
     },
     {
       "player_id": 8,
@@ -55,22 +20,50 @@
       "team_id": 1,
       "element_type": 2,
       "now_cost_millions": 5.9,
-      "expected_points": 11.302725761022241,
+      "expected_points": 11.882393604091034,
       "starting": 1,
       "bench": 0,
-      "captain": 0
+      "captain": 0,
+      "next_fixture": "FUL (A)"
     },
     {
-      "player_id": 82,
-      "full_name": "Antoine Semenyo",
-      "team_name": "Bournemouth",
-      "team_id": 4,
-      "element_type": 3,
-      "now_cost_millions": 7.9,
-      "expected_points": 18.50812837949841,
+      "player_id": 403,
+      "full_name": "Jo\u0161ko Gvardiol",
+      "team_name": "Man City",
+      "team_id": 13,
+      "element_type": 2,
+      "now_cost_millions": 5.9,
+      "expected_points": 11.425087691094053,
       "starting": 1,
       "bench": 0,
-      "captain": 1
+      "captain": 0,
+      "next_fixture": "EVE (H)"
+    },
+    {
+      "player_id": 476,
+      "full_name": "Dan Burn",
+      "team_name": "Newcastle",
+      "team_id": 15,
+      "element_type": 2,
+      "now_cost_millions": 5.1,
+      "expected_points": 10.766179099329273,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "BHA (A)"
+    },
+    {
+      "player_id": 151,
+      "full_name": "Jan Paul van Hecke",
+      "team_name": "Brighton",
+      "team_id": 6,
+      "element_type": 2,
+      "now_cost_millions": 4.4,
+      "expected_points": 10.243839885514465,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "NEW (H)"
     },
     {
       "player_id": 53,
@@ -79,10 +72,24 @@
       "team_id": 2,
       "element_type": 3,
       "now_cost_millions": 5.1,
-      "expected_points": 15.596378998282544,
+      "expected_points": 15.661125883705237,
       "starting": 1,
       "bench": 0,
-      "captain": 0
+      "captain": 1,
+      "next_fixture": "TOT (A)"
+    },
+    {
+      "player_id": 82,
+      "full_name": "Antoine Semenyo",
+      "team_name": "Bournemouth",
+      "team_id": 4,
+      "element_type": 3,
+      "now_cost_millions": 7.9,
+      "expected_points": 14.136253585044356,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "CRY (A)"
     },
     {
       "player_id": 488,
@@ -91,10 +98,11 @@
       "team_id": 15,
       "element_type": 3,
       "now_cost_millions": 6.5,
-      "expected_points": 14.957209387239681,
+      "expected_points": 13.593462884895473,
       "starting": 1,
       "bench": 0,
-      "captain": 0
+      "captain": 0,
+      "next_fixture": "BHA (A)"
     },
     {
       "player_id": 582,
@@ -103,22 +111,24 @@
       "team_id": 18,
       "element_type": 3,
       "now_cost_millions": 6.8,
-      "expected_points": 12.551443006108123,
+      "expected_points": 12.024526273091027,
       "starting": 1,
       "bench": 0,
-      "captain": 0
+      "captain": 0,
+      "next_fixture": "AVL (H)"
     },
     {
-      "player_id": 21,
-      "full_name": "Declan Rice",
-      "team_name": "Arsenal",
-      "team_id": 1,
+      "player_id": 455,
+      "full_name": "Mason Mount",
+      "team_name": "Man Utd",
+      "team_id": 14,
       "element_type": 3,
-      "now_cost_millions": 6.5,
-      "expected_points": 11.180550473449792,
+      "now_cost_millions": 5.9,
+      "expected_points": 10.662016742387221,
       "starting": 1,
       "bench": 0,
-      "captain": 0
+      "captain": 0,
+      "next_fixture": "LIV (A)"
     },
     {
       "player_id": 681,
@@ -127,10 +137,11 @@
       "team_id": 14,
       "element_type": 4,
       "now_cost_millions": 7.3,
-      "expected_points": 9.239871361366676,
+      "expected_points": 7.591033055931903,
       "starting": 1,
       "bench": 0,
-      "captain": 0
+      "captain": 0,
+      "next_fixture": "LIV (A)"
     }
   ],
   "bench": [
@@ -141,11 +152,12 @@
       "team_id": 1,
       "element_type": 2,
       "now_cost_millions": 5.2,
-      "expected_points": 1.4156118419496635,
+      "expected_points": 1.3540830335381524,
       "starting": 0,
       "bench": 1,
       "captain": 0,
-      "bench_order": 1
+      "bench_order": 1,
+      "next_fixture": "FUL (A)"
     },
     {
       "player_id": 100,
@@ -154,11 +166,12 @@
       "team_id": 4,
       "element_type": 4,
       "now_cost_millions": 4.5,
-      "expected_points": 0.31594075668427585,
+      "expected_points": 0.31432966945238433,
       "starting": 0,
       "bench": 1,
       "captain": 0,
-      "bench_order": 2
+      "bench_order": 2,
+      "next_fixture": "CRY (A)"
     },
     {
       "player_id": 135,
@@ -167,33 +180,35 @@
       "team_id": 15,
       "element_type": 4,
       "now_cost_millions": 7.4,
-      "expected_points": 0.315940737410991,
+      "expected_points": 0.31432957128779665,
       "starting": 0,
       "bench": 1,
       "captain": 0,
-      "bench_order": 3
+      "bench_order": 3,
+      "next_fixture": "BHA (A)"
     },
     {
-      "player_id": 101,
-      "full_name": "Caoimh\u00edn Kelleher",
-      "team_name": "Brentford",
-      "team_id": 5,
+      "player_id": 1,
+      "full_name": "David Raya Mart\u00edn",
+      "team_name": "Arsenal",
+      "team_id": 1,
       "element_type": 1,
-      "now_cost_millions": 4.5,
-      "expected_points": 3.3570520956144336,
+      "now_cost_millions": 5.7,
+      "expected_points": 6.20588188028845,
       "starting": 0,
       "bench": 1,
       "captain": 0,
-      "bench_order": 4
+      "bench_order": 4,
+      "next_fixture": "FUL (A)"
     }
   ],
-  "total_cost": 88.0,
-  "starting_cost": 66.39999999999999,
-  "bench_cost": 21.6,
-  "expected_points_without_captain": 137.80570775971538,
-  "total_expected_points_with_captain": 156.31383613921378,
-  "bench_expected_points": 5.404545431659364,
-  "captain": "Antoine Semenyo",
+  "total_cost": 88.6,
+  "starting_cost": 65.8,
+  "bench_cost": 22.8,
+  "expected_points_without_captain": 127.05710826410628,
+  "total_expected_points_with_captain": 142.7182341478115,
+  "bench_expected_points": 8.188624154566783,
+  "captain": "Donyell Malen",
   "formation": {
     "GK": 1,
     "DEF": 4,

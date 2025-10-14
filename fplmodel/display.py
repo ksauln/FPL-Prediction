@@ -77,6 +77,7 @@ def _format_label(player: Mapping, mark_captain: bool) -> str:
     team = player.get("team_name", "")
     cost = player.get("now_cost_millions")
     ep = player.get("expected_points")
+    fixture = player.get("next_fixture")
     captain_suffix = " (C)" if mark_captain else ""
     cost_part = f"Cost: £{cost:.1f}m" if isinstance(cost, (int, float)) else "Cost: N/A"
     ep_part = f"Predicted: {ep:.2f} pts" if isinstance(ep, (int, float)) else "Predicted: N/A"
@@ -84,8 +85,32 @@ def _format_label(player: Mapping, mark_captain: bool) -> str:
         team_part = f"Team: {team}"
     else:
         team_part = "Team: Unknown"
-    return f"{name}{captain_suffix}\n{team_part}\n{cost_part}\n{ep_part}"
+    if isinstance(fixture, str) and fixture:
+        fixture_part = f"Opp: {fixture}"
+    else:
+        fixture_part = "Opp: TBC"
+    return f"{name}{captain_suffix}\n{team_part}\n{fixture_part}\n{cost_part}\n{ep_part}"
 
+
+def _format_bench_label(
+    name: str,
+    position: str,
+    team_name: str,
+    fixture: Optional[str],
+    cost_txt: str,
+    ep_txt: str,
+) -> str:
+    name = name or "Unknown"
+    team_name = team_name or "Unknown"
+    fixture_line = f"Opp: {fixture}" if isinstance(fixture, str) and fixture else "Opp: TBC"
+    return "\n".join(
+        [
+            name,
+            f"{position} — {team_name}",
+            fixture_line,
+            f"{cost_txt} | {ep_txt}",
+        ]
+    )
 
 def create_best_xi_graphic(
     team: Mapping,
@@ -221,6 +246,7 @@ def create_best_xi_graphic(
                 team_name = player.get("team_name", "Unknown")
                 cost = player.get("now_cost_millions")
                 ep = player.get("expected_points")
+                fixture_txt = player.get("next_fixture")
                 cost_txt = f"£{cost:.1f}m" if isinstance(cost, (int, float)) else "£?"
                 ep_txt = f"{ep:.2f} pts" if isinstance(ep, (int, float)) else "?"
                 colour = POSITION_COLOURS.get(pos, "#546E7A")
@@ -247,7 +273,7 @@ def create_best_xi_graphic(
                 bench_ax.text(
                     x,
                     68,
-                    f"{name}\n{pos} — {team_name}\n{cost_txt} | {ep_txt}",
+                    _format_bench_label(name, pos, team_name, fixture_txt, cost_txt, ep_txt),
                     ha="center",
                     va="center",
                     color="white",

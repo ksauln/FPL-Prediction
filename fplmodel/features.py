@@ -462,9 +462,13 @@ def log_model_feature_weights(
         logger.info("No feature names available to log for %s", model_label)
         return
 
+    selector = None
     estimator = None
     if hasattr(model, "named_steps"):
+        selector = model.named_steps.get("feature_selector")
         estimator = model.named_steps.get("est")
+    if selector is not None and hasattr(selector, "features_to_keep_") and selector.features_to_keep_:
+        feature_names = list(selector.features_to_keep_)
     if estimator is None and hasattr(model, "feature_importances_"):
         estimator = model
     if estimator is None:
