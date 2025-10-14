@@ -59,6 +59,9 @@ def build_training_and_pred_frames(
     Returns:
       X_train (DataFrame), y_train (Series of total_points), X_pred (DataFrame for next_gw)
     """
+    team_labels = teams_df[["team_id", "name"]].rename(columns={"name": "team_name"})
+    elements_with_team = elements_df.merge(team_labels, on="team_id", how="left")
+
     # Merge element team ids into histories (histories has 'team')
     base = histories_df.merge(
         elements_df[["player_id", "team_id", "element_type"]].rename(columns={"team_id":"team"}),
@@ -86,11 +89,11 @@ def build_training_and_pred_frames(
     # PRED: need last_finished features to forecast next_gw per player (use most recent row per player <= last_finished_gw)
     last_rows = base[base["round"] <= last_finished_gw].sort_values(["player_id","round"]).groupby("player_id").tail(1)
     # but we must attach players' meta for identification (name, cost, team, element_type)
-    last_rows = last_rows.merge(
-        elements_df[["player_id", "full_name", "now_cost_millions", "team_id", "element_type"]],
+    last_rows = last_rows.drop(columns=["team_id", "element_type"], errors="ignore").merge(
+        elements_with_team[["player_id", "full_name", "now_cost_millions", "team_id", "element_type", "team_name"]],
         on="player_id", how="left"
     )
-    X_pred = last_rows[["player_id", "full_name", "now_cost_millions", "team_id", "element_type"]].copy()
+    X_pred = last_rows[["player_id", "full_name", "team_name", "now_cost_millions", "team_id", "element_type"]].copy()
     X_pred_features = last_rows[feature_cols].fillna(0.0)
     # Return both meta and features separately for convenience
     X_pred = X_pred.join(X_pred_features.reset_index(drop=True))
