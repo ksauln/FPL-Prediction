@@ -1,7 +1,8 @@
 from __future__ import annotations
+import logging
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Sequence
 
 from .config import ROLLING_WINDOWS, MIN_MATCHES_FOR_FEATURES
 from .state import ModelState
@@ -115,3 +116,64 @@ def expand_for_double_gw(pred_df: pd.DataFrame, fixtures_df: pd.DataFrame, next_
         team_counts[row["team_a"]] = team_counts.get(row["team_a"], 0) + 1
     pred_df["fixture_multiplier"] = pred_df["team_id"].map(team_counts).fillna(1).astype(float)
     return pred_df
+
+
+def log_model_feature_weights(
+    logger: logging.Logger,
+    feature_names: Sequence[str],
+    model: object,
+    model_label: str = "model",
+    top_n: int = 15,
+) -> None:
+    """
+    Log the most influential features (by absolute weight) for a fitted model.
+    """
+    if feature_names is None:
+        logger.info("No feature names available to log for %s", model_label)
+        return
+
+    feature_names = list(feature_names)
+    if not feature_names:
+        logger.info("No feature names available to log for %s", model_label)
+        return
+
+    estimator = None
+    if hasattr(model, "named_steps"):
+        estimator = model.named_steps.get("est")
+    if estimator is None and hasattr(model, "feature_importances_"):
+        estimator = model
+    if estimator is None:
+        logger.info("Skipping feature weight logging for %s; estimator unavailable.", model_label)
+        return
+
+    importances = getattr(estimator, "feature_importances_", None)
+    if importances is None:
+        logger.info(
+            "Estimator %s for %s does not expose feature_importances_; skipping logging.",
+            type(estimator).__name__,
+            model_label,
+        )
+        return
+
+    if len(importances) != len(feature_names):
+        logger.warning(
+            "Feature name count (%d) does not match weights (%d) for %s; logging skipped.",
+            len(feature_names),
+            len(importances),
+            model_label,
+        )
+        return
+
+    pairs = sorted(
+        zip(feature_names, importances),
+        key=lambda item: abs(item[1]),
+        reverse=True,
+    )
+    top_pairs = [(name, weight) for name, weight in pairs if abs(weight) > 0][:top_n]
+
+    if not top_pairs:
+        logger.info("All feature importances are zero for %s.", model_label)
+        return
+
+    formatted = ", ".join(f"{name}: {weight:.4f}" for name, weight in top_pairs)
+    logger.info("Top feature weights for %s: %s", model_label, formatted)
