@@ -441,8 +441,16 @@ def build_training_and_pred_frames(
                 "season_minutes",
             ]
         ],
-        on="player_id", how="left"
+        on="player_id",
+        how="left",
+        suffixes=("", "_meta"),
     )
+    if "season_minutes_meta" in last_rows.columns:
+        if "season_minutes" in last_rows.columns:
+            last_rows["season_minutes"] = last_rows["season_minutes"].fillna(last_rows["season_minutes_meta"])
+        else:
+            last_rows = last_rows.rename(columns={"season_minutes_meta": "season_minutes"})
+        last_rows = last_rows.drop(columns=["season_minutes_meta"])
     X_pred = last_rows[
         [
             "player_id",
