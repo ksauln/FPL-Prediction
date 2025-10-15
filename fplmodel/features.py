@@ -38,6 +38,11 @@ def _prepare_player_static_features(elements_df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
+    if "minutes" in df.columns:
+        df["season_minutes"] = pd.to_numeric(df["minutes"], errors="coerce").fillna(0.0)
+    else:
+        df["season_minutes"] = 0.0
+
     score_components = []
     for order_col, prefix in SET_PIECE_ORDER_MAP.items():
         if order_col in df.columns:
@@ -319,6 +324,7 @@ def build_training_and_pred_frames(
         "starts_per_90",
         "clean_sheets_per_90",
         "defensive_contribution_per_90",
+        "season_minutes",
         "corners_and_indirect_freekicks_order",
         "direct_freekicks_order",
         "penalties_order",
@@ -424,10 +430,30 @@ def build_training_and_pred_frames(
     last_rows = base[base["round"] <= last_finished_gw].sort_values(["player_id","round"]).groupby("player_id").tail(1)
     # but we must attach players' meta for identification (name, cost, team, element_type)
     last_rows = last_rows.drop(columns=["team_id", "element_type"], errors="ignore").merge(
-        elements_with_team[["player_id", "full_name", "now_cost_millions", "team_id", "element_type", "team_name"]],
+        elements_with_team[
+            [
+                "player_id",
+                "full_name",
+                "now_cost_millions",
+                "team_id",
+                "element_type",
+                "team_name",
+                "season_minutes",
+            ]
+        ],
         on="player_id", how="left"
     )
-    X_pred = last_rows[["player_id", "full_name", "team_name", "now_cost_millions", "team_id", "element_type"]].copy()
+    X_pred = last_rows[
+        [
+            "player_id",
+            "full_name",
+            "team_name",
+            "now_cost_millions",
+            "team_id",
+            "element_type",
+            "season_minutes",
+        ]
+    ].copy()
     X_pred_features = last_rows[feature_cols].fillna(0.0)
     # Return both meta and features separately for convenience
     X_pred = X_pred.join(X_pred_features.reset_index(drop=True))
