@@ -333,8 +333,16 @@ def build_training_and_pred_frames(
     merge_cols = [c for c in static_feature_cols if c in elements_enhanced.columns]
     base = histories_df.merge(
         elements_enhanced[merge_cols].rename(columns={"team_id": "team"}),
-        on="player_id", how="left"
+        on="player_id", how="left",
+        suffixes=("", "_current"),
     )
+
+    # Prefer historical team ids when available, but fall back to current squad assignment.
+    if "team" not in base.columns and "team_current" in base.columns:
+        base = base.rename(columns={"team_current": "team"})
+    elif "team_current" in base.columns:
+        base["team"] = base["team"].fillna(base["team_current"])
+        base = base.drop(columns=["team_current"])
     base = _rolling_feats(base, windows=tuple(ROLLING_WINDOWS))
     base = _merge_team_strength(base, teams_df)
 

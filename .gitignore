@@ -1,6 +1,7 @@
 # Virtual environments
 fpl_venv/
 venv/
+.venv/
 
 # Python cache
 __pycache__/
@@ -14,3 +15,23 @@ __pycache__/
 
 # macOS files
 .DS_Store
+
+# Local data caches
+#data/raw/
+#data/processed/
+#data/external/
+#cache/
+
+# Model artefacts
+models/*.joblib
+models/*.pkl
+models/state.json
+models/model_selection_summary.csv
+
+# Run outputs and logs
+#outputs/
+logs/
+
+# IDE metadata
+.vscode/
+.idea/

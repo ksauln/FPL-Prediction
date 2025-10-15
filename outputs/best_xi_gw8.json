@@ -7,10 +7,10 @@
       "team_id": 14,
       "element_type": 1,
       "now_cost_millions": 5.0,
-      "expected_points": 9.07118955902223,
+      "expected_points": 8.175785923944327,
       "starting": 1,
       "bench": 0,
-      "captain": 0,
+      "captain": 1,
       "next_fixture": "LIV (A)"
     },
     {
@@ -20,11 +20,24 @@
       "team_id": 1,
       "element_type": 2,
       "now_cost_millions": 5.9,
-      "expected_points": 11.882393604091034,
+      "expected_points": 6.863403622945804,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "FUL (A)"
+    },
+    {
+      "player_id": 684,
+      "full_name": "Malick Thiaw",
+      "team_name": "Newcastle",
+      "team_id": 15,
+      "element_type": 2,
+      "now_cost_millions": 4.9,
+      "expected_points": 5.694406644602454,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "BHA (A)"
     },
     {
       "player_id": 403,
@@ -33,37 +46,11 @@
       "team_id": 13,
       "element_type": 2,
       "now_cost_millions": 5.9,
-      "expected_points": 11.425087691094053,
+      "expected_points": 5.500972517559755,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "EVE (H)"
-    },
-    {
-      "player_id": 476,
-      "full_name": "Dan Burn",
-      "team_name": "Newcastle",
-      "team_id": 15,
-      "element_type": 2,
-      "now_cost_millions": 5.1,
-      "expected_points": 10.766179099329273,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0,
-      "next_fixture": "BHA (A)"
-    },
-    {
-      "player_id": 151,
-      "full_name": "Jan Paul van Hecke",
-      "team_name": "Brighton",
-      "team_id": 6,
-      "element_type": 2,
-      "now_cost_millions": 4.4,
-      "expected_points": 10.243839885514465,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0,
-      "next_fixture": "NEW (H)"
     },
     {
       "player_id": 53,
@@ -72,10 +59,10 @@
       "team_id": 2,
       "element_type": 3,
       "now_cost_millions": 5.1,
-      "expected_points": 15.661125883705237,
+      "expected_points": 6.513078992299633,
       "starting": 1,
       "bench": 0,
-      "captain": 1,
+      "captain": 0,
       "next_fixture": "TOT (A)"
     },
     {
@@ -85,24 +72,24 @@
       "team_id": 4,
       "element_type": 3,
       "now_cost_millions": 7.9,
-      "expected_points": 14.136253585044356,
+      "expected_points": 6.5006431416527475,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "CRY (A)"
     },
     {
-      "player_id": 488,
-      "full_name": "Bruno Guimar\u00e3es Rodriguez Moura",
-      "team_name": "Newcastle",
-      "team_id": 15,
+      "player_id": 698,
+      "full_name": "Noah Okafor",
+      "team_name": "Leeds",
+      "team_id": 11,
       "element_type": 3,
-      "now_cost_millions": 6.5,
-      "expected_points": 13.593462884895473,
+      "now_cost_millions": 5.5,
+      "expected_points": 6.443626140908067,
       "starting": 1,
       "bench": 0,
       "captain": 0,
-      "next_fixture": "BHA (A)"
+      "next_fixture": "BUR (A)"
     },
     {
       "player_id": 582,
@@ -111,24 +98,24 @@
       "team_id": 18,
       "element_type": 3,
       "now_cost_millions": 6.8,
-      "expected_points": 12.024526273091027,
+      "expected_points": 5.765074557192871,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "AVL (H)"
     },
     {
-      "player_id": 455,
-      "full_name": "Mason Mount",
-      "team_name": "Man Utd",
-      "team_id": 14,
+      "player_id": 488,
+      "full_name": "Bruno Guimar\u00e3es Rodriguez Moura",
+      "team_name": "Newcastle",
+      "team_id": 15,
       "element_type": 3,
-      "now_cost_millions": 5.9,
-      "expected_points": 10.662016742387221,
+      "now_cost_millions": 6.5,
+      "expected_points": 5.764747676830557,
       "starting": 1,
       "bench": 0,
       "captain": 0,
-      "next_fixture": "LIV (A)"
+      "next_fixture": "BHA (A)"
     },
     {
       "player_id": 681,
@@ -137,14 +124,41 @@
       "team_id": 14,
       "element_type": 4,
       "now_cost_millions": 7.3,
-      "expected_points": 7.591033055931903,
+      "expected_points": 5.003543947249554,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "LIV (A)"
+    },
+    {
+      "player_id": 430,
+      "full_name": "Erling Haaland",
+      "team_name": "Man City",
+      "team_id": 13,
+      "element_type": 4,
+      "now_cost_millions": 14.5,
+      "expected_points": 4.92800159855369,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "EVE (H)"
     }
   ],
   "bench": [
+    {
+      "player_id": 106,
+      "full_name": "Nathan Collins",
+      "team_name": "Brentford",
+      "team_id": 5,
+      "element_type": 2,
+      "now_cost_millions": 4.9,
+      "expected_points": 2.152614546429584,
+      "starting": 0,
+      "bench": 1,
+      "captain": 0,
+      "bench_order": 1,
+      "next_fixture": "WHU (A)"
+    },
     {
       "player_id": 10,
       "full_name": "Myles Lewis-Skelly",
@@ -152,11 +166,11 @@
       "team_id": 1,
       "element_type": 2,
       "now_cost_millions": 5.2,
-      "expected_points": 1.3540830335381524,
+      "expected_points": 1.1188826918065091,
       "starting": 0,
       "bench": 1,
       "captain": 0,
-      "bench_order": 1,
+      "bench_order": 2,
       "next_fixture": "FUL (A)"
     },
     {
@@ -166,26 +180,12 @@
       "team_id": 4,
       "element_type": 4,
       "now_cost_millions": 4.5,
-      "expected_points": 0.31432966945238433,
-      "starting": 0,
-      "bench": 1,
-      "captain": 0,
-      "bench_order": 2,
-      "next_fixture": "CRY (A)"
-    },
-    {
-      "player_id": 135,
-      "full_name": "Yoane Wissa",
-      "team_name": "Newcastle",
-      "team_id": 15,
-      "element_type": 4,
-      "now_cost_millions": 7.4,
-      "expected_points": 0.31432957128779665,
+      "expected_points": 0.5361129014355952,
       "starting": 0,
       "bench": 1,
       "captain": 0,
       "bench_order": 3,
-      "next_fixture": "BHA (A)"
+      "next_fixture": "CRY (A)"
     },
     {
       "player_id": 1,
@@ -194,7 +194,7 @@
       "team_id": 1,
       "element_type": 1,
       "now_cost_millions": 5.7,
-      "expected_points": 6.20588188028845,
+      "expected_points": 2.4898757931135354,
       "starting": 0,
       "bench": 1,
       "captain": 0,
@@ -202,18 +202,18 @@
       "next_fixture": "FUL (A)"
     }
   ],
-  "total_cost": 88.6,
-  "starting_cost": 65.8,
-  "bench_cost": 22.8,
-  "expected_points_without_captain": 127.05710826410628,
-  "total_expected_points_with_captain": 142.7182341478115,
-  "bench_expected_points": 8.188624154566783,
-  "captain": "Donyell Malen",
+  "total_cost": 95.6,
+  "starting_cost": 75.3,
+  "bench_cost": 20.3,
+  "expected_points_without_captain": 67.15328476373946,
+  "total_expected_points_with_captain": 75.3290706876838,
+  "bench_expected_points": 6.297485932785223,
+  "captain": "Senne Lammens",
   "formation": {
     "GK": 1,
-    "DEF": 4,
+    "DEF": 3,
     "MID": 5,
-    "FWD": 1
+    "FWD": 2
   },
-  "formation_name": "4-5-1"
+  "formation_name": "3-5-2"
 }

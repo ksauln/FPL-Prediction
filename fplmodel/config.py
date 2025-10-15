@@ -12,6 +12,9 @@ MODELS_DIR = PROJECT_ROOT / "models"
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 LOGS_DIR = PROJECT_ROOT / "logs"
 CACHE_DIR = PROJECT_ROOT / "cache"
+EXTERNAL_DATA_DIR = DATA_DIR / "external"
+EXTERNAL_HISTORY_REPO = EXTERNAL_DATA_DIR / "Fantasy-Premier-League"
+EXTERNAL_HISTORY_DIR = EXTERNAL_HISTORY_REPO / "data"
 
 # --- API Endpoints (official FPL)
 FPL_BOOTSTRAP = "https://fantasy.premierleague.com/api/bootstrap-static/"
@@ -24,15 +27,23 @@ RANDOM_SEED = 42
 # Cache: refetch player histories if older than N days
 CACHE_TTL_DAYS = 2
 
+# Historical data
+PLAYER_HISTORY_SEASONS_BACK = 5  # append this many prior seasons to player match history
+USE_EXTERNAL_HISTORY = True
+EXTERNAL_HISTORY_SEASONS = ["2020-21", "2021-22", "2022-23", "2023-24", "2024-25"]  # extend training with these completed seasons
+
+# GPU acceleration
+ENABLE_GPU_TRAINING = True  # attempt to use GPU-accelerated models when available
+
 # Feature engineering
-ROLLING_WINDOWS = [3, 5]
-MIN_MATCHES_FOR_FEATURES = 2  # min previous matches required to generate a training row
+ROLLING_WINDOWS = [5]
+MIN_MATCHES_FOR_FEATURES = 3  # min previous matches required to generate a training row
 
 # Bias-correction (EMA) applied after each finished GW
-EMA_ALPHA = 0.35  # weight of the most recent residual
+EMA_ALPHA = 0.25  # weight of the most recent residual
 
 # Feature selection
-FEATURE_CORRELATION_THRESHOLD = 0.95
+FEATURE_CORRELATION_THRESHOLD = 0.90
 FEATURE_MIN_VARIANCE = 1e-6  # drop features with (near) zero variance
 
 # Hyperparameter tuning

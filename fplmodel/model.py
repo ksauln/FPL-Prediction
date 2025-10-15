@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from functools import lru_cache
 import warnings
 
 import joblib
@@ -42,6 +43,7 @@ from .config import (
     MLP_CLF_PARAM_DISTRIBUTIONS,
     XGB_REG_PARAM_DISTRIBUTIONS,
     XGB_CLF_PARAM_DISTRIBUTIONS,
+    ENABLE_GPU_TRAINING,
 )
 from .state import ModelState
 
@@ -311,8 +313,38 @@ class ModelCandidate:
     reg_param_distributions: dict[str, Sequence] | None = None
 
 
+@dataclass
+class FittedModelBundle:
+    """Concrete fitted pipelines for a model candidate."""
+
+    name: str
+    display_name: str
+    classifier: Pipeline
+    regressor: Pipeline
+
+
 def _xgboost_available() -> bool:
     return XGBClassifier is not None and XGBRegressor is not None
+
+
+@lru_cache(maxsize=1)
+def _xgboost_gpu_enabled() -> bool:
+    if not ENABLE_GPU_TRAINING:
+        return False
+    if not _xgboost_available():
+        return False
+    try:
+        import os
+        import xgboost  # type: ignore
+
+        if os.environ.get("CUDA_VISIBLE_DEVICES", None) == "":
+            return False
+        has_cuda = getattr(xgboost.core, "_has_cuda_support", None)
+        if callable(has_cuda):
+            return bool(has_cuda())
+    except Exception:
+        return False
+    return True
 
 
 def _build_model_candidates() -> list[ModelCandidate]:
@@ -411,42 +443,77 @@ def _build_model_candidates() -> list[ModelCandidate]:
     )
 
     if _xgboost_available():
+        gpu_enabled = _xgboost_gpu_enabled()
+        if gpu_enabled:
+            logger.info("GPU detected; configuring XGBoost candidates for gpu_hist training.")
 
         def xgb_classifier() -> Pipeline:
-            return _build_pipeline(
-                XGBClassifier(
-                    objective="binary:logistic",
-                    eval_metric="logloss",
-                    n_estimators=350,
-                    learning_rate=0.08,
-                    max_depth=6,
-                    subsample=0.9,
-                    colsample_bytree=0.9,
-                    reg_lambda=1.0,
-                    gamma=0.0,
-                    random_state=RANDOM_SEED,
-                    n_jobs=1,
-                    verbosity=0,
-                    tree_method="hist",
+            base_params = dict(
+                objective="binary:logistic",
+                eval_metric="logloss",
+                n_estimators=350,
+                learning_rate=0.08,
+                max_depth=6,
+                subsample=0.9,
+                colsample_bytree=0.9,
+                reg_lambda=1.0,
+                gamma=0.0,
+                random_state=RANDOM_SEED,
+                n_jobs=1,
+                verbosity=0,
+                tree_method="hist",
+            )
+            if gpu_enabled:
+                base_params.update(
+                    {
+                        "tree_method": "gpu_hist",
+                        "predictor": "gpu_predictor",
+                    }
                 )
+                params_with_device = dict(base_params)
+                params_with_device["device"] = "cuda"
+                try:
+                    estimator = XGBClassifier(**params_with_device)
+                except TypeError:
+                    estimator = XGBClassifier(**base_params)
+            else:
+                estimator = XGBClassifier(**base_params)
+            return _build_pipeline(
+                estimator
             )
 
         def xgb_regressor() -> Pipeline:
-            return _build_pipeline(
-                XGBRegressor(
-                    objective="reg:squarederror",
-                    n_estimators=400,
-                    learning_rate=0.08,
-                    max_depth=6,
-                    subsample=0.9,
-                    colsample_bytree=0.9,
-                    reg_lambda=1.0,
-                    gamma=0.0,
-                    random_state=RANDOM_SEED,
-                    n_jobs=1,
-                    verbosity=0,
-                    tree_method="hist",
+            base_params = dict(
+                objective="reg:squarederror",
+                n_estimators=400,
+                learning_rate=0.08,
+                max_depth=6,
+                subsample=0.9,
+                colsample_bytree=0.9,
+                reg_lambda=1.0,
+                gamma=0.0,
+                random_state=RANDOM_SEED,
+                n_jobs=1,
+                verbosity=0,
+                tree_method="hist",
+            )
+            if gpu_enabled:
+                base_params.update(
+                    {
+                        "tree_method": "gpu_hist",
+                        "predictor": "gpu_predictor",
+                    }
                 )
+                params_with_device = dict(base_params)
+                params_with_device["device"] = "cuda"
+                try:
+                    estimator = XGBRegressor(**params_with_device)
+                except TypeError:
+                    estimator = XGBRegressor(**base_params)
+            else:
+                estimator = XGBRegressor(**base_params)
+            return _build_pipeline(
+                estimator
             )
 
         candidates.append(
@@ -578,9 +645,12 @@ def _evaluate_model_candidates(
     return results
 
 
-def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, Pipeline]:
+def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, Pipeline, list[FittedModelBundle]]:
     """
     Train classifier (starts >=60) and regressor (points) by comparing multiple model families.
+
+    Returns the selected classifier/regressor pipelines plus every fitted candidate pair
+    for downstream ensembling.
     """
 
     def derive_start_target(df: pd.DataFrame) -> np.ndarray:
@@ -650,34 +720,67 @@ def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, P
             best_reg_candidate.display_name,
         )
 
-    clf_pipeline = best_clf_candidate.build_classifier()
-    reg_pipeline = best_reg_candidate.build_regressor()
-    clf_override_params = (
-        best_clf_metrics.get("clf_best_params") if best_clf_metrics else None
-    )
-    reg_override_params = (
-        best_reg_metrics.get("reg_best_params") if best_reg_metrics else None
-    )
+    fitted_candidates: list[FittedModelBundle] = []
+    fitted_map: dict[str, FittedModelBundle] = {}
 
-    try:
-        clf = _fit_with_optional_tuning(
-            clf_pipeline,
-            best_clf_candidate.clf_param_distributions,
-            X_train,
-            y_start,
-            label=f"classifier[{best_clf_candidate.name}]",
-            scoring="balanced_accuracy",
-            require_two_classes=True,
-            override_params=clf_override_params,
+    for res in evaluation_results:
+        candidate = res["candidate"]
+        clf_override_params = res.get("clf_best_params") if res else None
+        reg_override_params = res.get("reg_best_params") if res else None
+
+        try:
+            candidate_clf = _fit_with_optional_tuning(
+                candidate.build_classifier(),
+                candidate.clf_param_distributions,
+                X_train,
+                y_start,
+                label=f"classifier[{candidate.name}]",
+                scoring="balanced_accuracy",
+                require_two_classes=True,
+                override_params=clf_override_params,
+            )
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            logger.warning(
+                "Training classifier %s failed (%s); skipping candidate for ensemble.",
+                candidate.display_name,
+                exc,
+            )
+            continue
+
+        try:
+            candidate_reg = _fit_with_optional_tuning(
+                candidate.build_regressor(),
+                candidate.reg_param_distributions,
+                X_train,
+                y_train,
+                label=f"regressor[{candidate.name}]",
+                scoring="neg_mean_absolute_error",
+                override_params=reg_override_params,
+            )
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            logger.warning(
+                "Training regressor %s failed (%s); skipping candidate for ensemble.",
+                candidate.display_name,
+                exc,
+            )
+            continue
+
+        bundle = FittedModelBundle(
+            name=candidate.name,
+            display_name=candidate.display_name,
+            classifier=candidate_clf,
+            regressor=candidate_reg,
         )
-    except Exception as exc:  # pragma: no cover - defensive fallback
-        logger.warning(
-            "Training classifier %s failed (%s); reverting to Histogram Gradient Boosting.",
-            best_clf_candidate.display_name,
-            exc,
-        )
+        fitted_candidates.append(bundle)
+        fitted_map[candidate.name] = bundle
+
+    if not fitted_candidates:
         fallback = candidates[0]
-        clf = _fit_with_optional_tuning(
+        logger.warning(
+            "All candidate trainings failed; fitting fallback model %s.",
+            fallback.display_name,
+        )
+        fallback_clf = _fit_with_optional_tuning(
             fallback.build_classifier(),
             fallback.clf_param_distributions,
             X_train,
@@ -686,26 +789,7 @@ def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, P
             scoring="balanced_accuracy",
             require_two_classes=True,
         )
-        best_clf_candidate = fallback
-
-    try:
-        reg = _fit_with_optional_tuning(
-            reg_pipeline,
-            best_reg_candidate.reg_param_distributions,
-            X_train,
-            y_train,
-            label=f"regressor[{best_reg_candidate.name}]",
-            scoring="neg_mean_absolute_error",
-            override_params=reg_override_params,
-        )
-    except Exception as exc:  # pragma: no cover - defensive fallback
-        logger.warning(
-            "Training regressor %s failed (%s); reverting to Histogram Gradient Boosting.",
-            best_reg_candidate.display_name,
-            exc,
-        )
-        fallback = candidates[0]
-        reg = _fit_with_optional_tuning(
+        fallback_reg = _fit_with_optional_tuning(
             fallback.build_regressor(),
             fallback.reg_param_distributions,
             X_train,
@@ -713,7 +797,35 @@ def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, P
             label=f"regressor[{fallback.name}]",
             scoring="neg_mean_absolute_error",
         )
-        best_reg_candidate = fallback
+        fallback_bundle = FittedModelBundle(
+            name=fallback.name,
+            display_name=fallback.display_name,
+            classifier=fallback_clf,
+            regressor=fallback_reg,
+        )
+        fitted_candidates.append(fallback_bundle)
+        fitted_map[fallback.name] = fallback_bundle
+
+    fallback_bundle = fitted_candidates[0]
+    if best_clf_candidate.name not in fitted_map:
+        logger.warning(
+            "Selected classifier %s unavailable after fitting; reverting to %s.",
+            best_clf_candidate.display_name,
+            fallback_bundle.display_name,
+        )
+        best_clf_candidate = candidates[0]
+    if best_reg_candidate.name not in fitted_map:
+        logger.warning(
+            "Selected regressor %s unavailable after fitting; reverting to %s.",
+            best_reg_candidate.display_name,
+            fallback_bundle.display_name,
+        )
+        best_reg_candidate = candidates[0]
+
+    clf_bundle = fitted_map.get(best_clf_candidate.name, fallback_bundle)
+    reg_bundle = fitted_map.get(best_reg_candidate.name, fallback_bundle)
+    clf = clf_bundle.classifier
+    reg = reg_bundle.regressor
 
     _log_feature_selection(
         clf.named_steps.get("feature_selector"),
@@ -724,12 +836,18 @@ def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, P
         f"regressor ({best_reg_candidate.display_name})",
     )
 
+    logger.info(
+        "Final model selection: classifier=%s | regressor=%s",
+        best_clf_candidate.display_name,
+        best_reg_candidate.display_name,
+    )
+
     # Ensure model directory exists before persisting artifacts
     CLF_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     joblib.dump(clf, CLF_PATH)
     joblib.dump(reg, REG_PATH)
-    return clf, reg
+    return clf, reg, fitted_candidates
 
 def load_models() -> Tuple[Pipeline, Pipeline]:
     clf = joblib.load(CLF_PATH)

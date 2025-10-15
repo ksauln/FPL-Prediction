@@ -4,8 +4,16 @@ import json
 import os
 import pandas as pd
 
-from fplmodel.config import RAW_DIR, PROCESSED_DIR, OUTPUTS_DIR, MODELS_DIR, FORMATION_OPTIONS
-from fplmodel.config import MAX_TRAIN_GW
+from fplmodel.config import (
+    RAW_DIR,
+    PROCESSED_DIR,
+    OUTPUTS_DIR,
+    MODELS_DIR,
+    FORMATION_OPTIONS,
+    MAX_TRAIN_GW,
+    USE_EXTERNAL_HISTORY,
+    EXTERNAL_HISTORY_SEASONS,
+)
 from fplmodel.data_pull import fetch_bootstrap_static, fetch_fixtures_all, bulk_fetch_player_histories
 from fplmodel.data_cleaning import normalize_bootstrap
 from fplmodel.features import (
@@ -18,6 +26,7 @@ from fplmodel.evaluation import evaluate_last_finished_gw_and_update_state
 from fplmodel.state import ModelState
 from fplmodel.utils import get_current_and_last_finished_gw
 from fplmodel.logging_utils import configure_run_logger, update_log_filename_for_gameweek
+from fplmodel.external_history import load_external_histories
 
 from fplmodel.team_picker import pick_best_xi
 from fplmodel.display import create_best_xi_graphic
@@ -122,6 +131,30 @@ def run_pipeline(force_refetch: bool = False):
             logger.error("No player history data found in %s", RAW_DIR)
             raise RuntimeError("No player history data found.")
 
+        if USE_EXTERNAL_HISTORY:
+            external_histories = load_external_histories(EXTERNAL_HISTORY_SEASONS)
+            if external_histories is not None and not external_histories.empty:
+                external_histories = external_histories[
+                    external_histories["player_id"].isin(elements_df["player_id"])
+                ].copy()
+                logger.info(
+                    "Loaded %d external history rows for seasons %s",
+                    len(external_histories),
+                    ", ".join(EXTERNAL_HISTORY_SEASONS),
+                )
+                histories_df = pd.concat(
+                    [histories_df, external_histories],
+                    ignore_index=True,
+                    sort=False,
+                )
+                histories_df = histories_df.drop_duplicates(
+                    subset=["player_id", "fixture", "round", "season_name"],
+                    keep="first",
+                )
+                logger.info("Combined history dataset now has %d rows", len(histories_df))
+            else:
+                logger.info("No external history rows loaded.")
+
         # 4) Build training and next-gw prediction frames
         state = ModelState()
         X_train, y_train, X_pred = build_training_and_pred_frames(
@@ -145,19 +178,61 @@ def run_pipeline(force_refetch: bool = False):
             "Training feature columns: %s",
             ", ".join(train_features.columns.astype(str)),
         )
-        clf, reg = train_models(train_features, y_train)
+        clf, reg, candidate_models = train_models(train_features, y_train)
         log_model_feature_weights(logger, train_features.columns, reg, model_label="regressor")
         log_model_feature_weights(logger, train_features.columns, clf, model_label="classifier")
-        logger.info("Model training complete")
+        logger.info(
+            "Model training complete; fitted %d candidate pair(s).",
+            len(candidate_models),
+        )
 
         # 6) Predict EP for next GW
-        predictions = predict_expected_points(X_pred, clf, reg, state)
-        logger.info("Generated baseline predictions for %d players", len(predictions))
+        meta_cols = ["player_id", "full_name", "team_name", "now_cost_millions", "team_id", "element_type"]
+        per_model_raw_cols: list[str] = []
+        per_model_corrected_cols: list[str] = []
+        ensemble_predictions = None
+
+        for bundle in candidate_models:
+            preds = predict_expected_points(X_pred, bundle.classifier, bundle.regressor, state)
+            suffix = bundle.name
+            raw_col = f"expected_points_raw__{suffix}"
+            corrected_col = f"expected_points__{suffix}"
+            if ensemble_predictions is None:
+                ensemble_predictions = preds[meta_cols].copy()
+            ensemble_predictions[raw_col] = preds["expected_points_raw"].values
+            ensemble_predictions[corrected_col] = preds["expected_points"].values
+            per_model_raw_cols.append(raw_col)
+            per_model_corrected_cols.append(corrected_col)
+
+        if ensemble_predictions is None:
+            raise RuntimeError("No candidate predictions were generated for the ensemble.")
+
+        if per_model_raw_cols:
+            ensemble_predictions["expected_points_raw"] = ensemble_predictions[per_model_raw_cols].mean(axis=1)
+        else:
+            ensemble_predictions["expected_points_raw"] = 0.0
+
+        player_bias = ensemble_predictions["player_id"].apply(state.get_player_bias)
+        position_bias = ensemble_predictions["element_type"].apply(state.get_position_bias)
+        ensemble_predictions["expected_points"] = (
+            ensemble_predictions["expected_points_raw"] + player_bias + position_bias
+        ).clip(lower=0.0)
+
+        predictions = ensemble_predictions
+        logger.info(
+            "Generated ensemble predictions for %d players using %d model(s): %s",
+            len(predictions),
+            len(candidate_models),
+            ", ".join(bundle.display_name for bundle in candidate_models),
+        )
 
         # 7) Double/Blank GW scaling (approximate): multiply EP by number of fixtures
         fixtures_df = pd.DataFrame(fixtures)
         predictions = expand_for_double_gw(predictions, fixtures_df, next_gw)
-        predictions["expected_points"] = predictions["expected_points"] * predictions["fixture_multiplier"]
+        if "fixture_multiplier" in predictions.columns:
+            predictions["expected_points"] = predictions["expected_points"] * predictions["fixture_multiplier"]
+            for col in per_model_corrected_cols:
+                predictions[col] = predictions[col] * predictions["fixture_multiplier"]
         logger.info("Applied fixture multipliers; average EP now %.2f", predictions["expected_points"].mean())
 
         top_preds = (
@@ -167,7 +242,7 @@ def run_pipeline(force_refetch: bool = False):
             .tolist()
         )
         if top_preds:
-            logger.info("Top 5 expected point predictions: %s", "; ".join(top_preds))
+            logger.info("Top 5 expected point predictions (ensemble): %s", "; ".join(top_preds))
 
         # 8) Evaluate last finished GW and update biases (EMA)
         train_like = X_pred[["player_id", "element_type"] + feature_columns].copy()
