@@ -44,6 +44,7 @@ from .config import (
     XGB_REG_PARAM_DISTRIBUTIONS,
     XGB_CLF_PARAM_DISTRIBUTIONS,
     ENABLE_GPU_TRAINING,
+    MIN_MATCHES_FOR_FEATURES,
 )
 from .state import ModelState
 
@@ -865,7 +866,9 @@ def predict_expected_points(
     plus same feature columns used during training.
     Returns a DataFrame with expected_points and bias-corrected EP.
     """
-    meta_cols = ["player_id", "full_name", "team_name", "now_cost_millions", "team_id", "element_type"]
+    base_meta_cols = ["player_id", "full_name", "team_name", "now_cost_millions", "team_id", "element_type"]
+    optional_meta_cols = [col for col in ("season_minutes",) if col in X_meta_and_feats.columns]
+    meta_cols = base_meta_cols + optional_meta_cols
     meta = X_meta_and_feats[meta_cols].copy()
     feats = X_meta_and_feats.drop(columns=meta_cols)
 
@@ -873,14 +876,27 @@ def predict_expected_points(
     pts_hat = reg.predict(feats)
     ep = p_start * pts_hat
 
+    if "season_minutes" in meta.columns:
+        season_minutes = pd.to_numeric(meta["season_minutes"], errors="coerce").fillna(0.0)
+        minutes_threshold = float(MIN_MATCHES_FOR_FEATURES * 90.0)
+        if minutes_threshold > 0:
+            reliability = np.clip(season_minutes / minutes_threshold, 0.0, 1.0)
+        else:  # pragma: no cover - defensive
+            reliability = pd.Series(1.0, index=meta.index)
+    else:
+        reliability = pd.Series(1.0, index=meta.index)
+    reliability_np = reliability.to_numpy(dtype=float)
+
     # Apply bias corrections
     player_bias = np.array([state.get_player_bias(pid) for pid in meta["player_id"].values])
     pos_bias = np.array([state.get_position_bias(pos) for pos in meta["element_type"].values])
-    ep_corrected = ep + player_bias + pos_bias
+    ep_raw = ep * reliability_np
+    ep_corrected = (ep + player_bias + pos_bias) * reliability_np
 
     out = meta.copy()
     out["p_start"] = p_start
     out["points_hat"] = pts_hat
-    out["expected_points_raw"] = ep
+    out["reliability_weight"] = reliability_np
+    out["expected_points_raw"] = ep_raw
     out["expected_points"] = ep_corrected.clip(min=0.0)  # no negatives
     return out
