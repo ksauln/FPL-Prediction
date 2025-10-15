@@ -74,6 +74,53 @@ CLF_PARAM_DISTRIBUTIONS = {
     "est__l2_regularization": [0.0, 0.05, 0.1, 0.3],
 }
 
+RF_REG_PARAM_DISTRIBUTIONS = {
+    "est__n_estimators": [200, 400, 600],
+    "est__max_depth": [None, 10, 20],
+    "est__min_samples_split": [2, 4, 6],
+    "est__min_samples_leaf": [1, 2, 4],
+    "est__max_features": [1.0, 0.7, "sqrt"],
+}
+RF_CLF_PARAM_DISTRIBUTIONS = {
+    "est__n_estimators": [200, 400, 600],
+    "est__max_depth": [None, 10, 20],
+    "est__min_samples_split": [2, 4, 6],
+    "est__min_samples_leaf": [1, 2, 4],
+    "est__max_features": ["sqrt", "log2", 0.6],
+}
+
+MLP_REG_PARAM_DISTRIBUTIONS = {
+    "est__hidden_layer_sizes": [(128, 64), (256, 128), (128, 128, 64)],
+    "est__alpha": [1e-4, 5e-4, 1e-3],
+    "est__learning_rate_init": [0.001, 0.003, 0.01],
+    "est__beta_1": [0.85, 0.9, 0.95],
+}
+MLP_CLF_PARAM_DISTRIBUTIONS = {
+    "est__hidden_layer_sizes": [(128, 64), (256, 128), (128, 128, 64)],
+    "est__alpha": [1e-4, 5e-4, 1e-3],
+    "est__learning_rate_init": [0.001, 0.003, 0.01],
+    "est__beta_1": [0.85, 0.9, 0.95],
+}
+
+XGB_REG_PARAM_DISTRIBUTIONS = {
+    "est__n_estimators": [250, 400, 550],
+    "est__learning_rate": [0.05, 0.08, 0.12],
+    "est__max_depth": [4, 6, 8],
+    "est__subsample": [0.8, 0.9, 1.0],
+    "est__colsample_bytree": [0.7, 0.85, 1.0],
+    "est__reg_lambda": [0.5, 1.0, 1.5],
+    "est__gamma": [0.0, 0.1, 0.3],
+}
+XGB_CLF_PARAM_DISTRIBUTIONS = {
+    "est__n_estimators": [250, 400, 550],
+    "est__learning_rate": [0.05, 0.08, 0.12],
+    "est__max_depth": [4, 6, 8],
+    "est__subsample": [0.8, 0.9, 1.0],
+    "est__colsample_bytree": [0.7, 0.85, 1.0],
+    "est__reg_lambda": [0.5, 1.0, 1.5],
+    "est__gamma": [0.0, 0.1, 0.3],
+}
+
 # Team selection
 BUDGET_MILLIONS = 100.0  # total budget for the full 15-player squad
 FORMATION = {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3}  # starting XI shape

@@ -1,16 +1,27 @@
 from __future__ import annotations
+
 import logging
+from dataclasses import dataclass
+import warnings
+
 import joblib
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from typing import Tuple, Sequence
+from typing import Any, Callable, Tuple, Sequence
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.ensemble import HistGradientBoostingRegressor, HistGradientBoostingClassifier
+from sklearn.ensemble import (
+    HistGradientBoostingClassifier,
+    HistGradientBoostingRegressor,
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import RandomizedSearchCV, cross_val_score
+from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from .config import (
     MODELS_DIR,
@@ -25,8 +36,20 @@ from .config import (
     HYPERPARAM_TUNING_CV,
     REG_PARAM_DISTRIBUTIONS,
     CLF_PARAM_DISTRIBUTIONS,
+    RF_REG_PARAM_DISTRIBUTIONS,
+    RF_CLF_PARAM_DISTRIBUTIONS,
+    MLP_REG_PARAM_DISTRIBUTIONS,
+    MLP_CLF_PARAM_DISTRIBUTIONS,
+    XGB_REG_PARAM_DISTRIBUTIONS,
+    XGB_CLF_PARAM_DISTRIBUTIONS,
 )
 from .state import ModelState
+
+try:  # Optional dependency; only required if XGBoost models are used
+    from xgboost import XGBClassifier, XGBRegressor  # type: ignore
+except ImportError:  # pragma: no cover - optional dependency
+    XGBClassifier = None  # type: ignore
+    XGBRegressor = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +139,12 @@ def _fit_with_optional_tuning(
     label: str,
     scoring: str | None = None,
     require_two_classes: bool = False,
+    override_params: dict[str, Any] | None = None,
 ) -> Pipeline:
+    if override_params:
+        pipeline.set_params(**override_params)
+        pipeline.fit(X, y)
+        return pipeline
     if param_distributions and _should_tune(y, require_two_classes=require_two_classes):
         n_iter = min(HYPERPARAM_TUNING_ITER, _param_space_size(param_distributions))
         if n_iter <= 0:
@@ -154,15 +182,106 @@ def _fit_with_optional_tuning(
     pipeline.fit(X, y)
     return pipeline
 
-def _build_pipeline(estimator: BaseEstimator) -> Pipeline:
-    return Pipeline([
-        ("feature_selector", CorrelatedFeatureDropper(
-            correlation_threshold=FEATURE_CORRELATION_THRESHOLD,
-            min_variance=FEATURE_MIN_VARIANCE,
-        )),
+
+def _tune_and_score(
+    pipeline_builder: Callable[[], Pipeline],
+    param_distributions: dict[str, Sequence] | None,
+    X: pd.DataFrame,
+    y: pd.Series | np.ndarray,
+    label: str,
+    scoring: str,
+    require_two_classes: bool = False,
+    cv: int | None = None,
+) -> tuple[float, float, dict[str, Any] | None]:
+    metric_mean = float("nan")
+    metric_std = float("nan")
+    best_params: dict[str, Any] | None = None
+
+    if param_distributions and _should_tune(y, require_two_classes=require_two_classes):
+        cv_splits = cv if cv is not None else min(HYPERPARAM_TUNING_CV, len(y))
+        n_iter = min(HYPERPARAM_TUNING_ITER, _param_space_size(param_distributions))
+        if n_iter > 0:
+            try:
+                search = RandomizedSearchCV(
+                    pipeline_builder(),
+                    param_distributions=param_distributions,
+                    n_iter=n_iter,
+                    cv=cv_splits,
+                    scoring=scoring,
+                    random_state=RANDOM_SEED,
+                    n_jobs=-1,
+                    refit=True,
+                    error_score="raise",
+                    return_train_score=False,
+                )
+                search.fit(X, y)
+                idx = search.best_index_
+                score_mean = float(search.cv_results_["mean_test_score"][idx])
+                score_std = float(search.cv_results_["std_test_score"][idx])
+                negative_metric = scoring.startswith("neg_")
+                if negative_metric:
+                    metric_mean = -score_mean
+                    metric_std = score_std
+                else:
+                    metric_mean = score_mean
+                    metric_std = score_std
+                best_params = search.best_params_
+                logger.info(
+                    "Best %s params from tuning: %s (score=%.4f)",
+                    label,
+                    best_params,
+                    search.best_score_,
+                )
+                return metric_mean, metric_std, best_params
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning(
+                    "Hyperparameter tuning for %s failed (%s). Falling back to baseline CV.",
+                    label,
+                    exc,
+                )
+    elif ENABLE_HYPERPARAM_TUNING:
+        logger.info("Skipping hyperparameter tuning for %s due to data or configuration.", label)
+
+    try:
+        cv_splits = cv if cv is not None else min(HYPERPARAM_TUNING_CV, len(y))
+        if cv_splits is None or cv_splits < 2:
+            return metric_mean, metric_std, best_params
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=ConvergenceWarning)
+            scores = cross_val_score(
+                pipeline_builder(),
+                X,
+                y,
+                scoring=scoring,
+                cv=cv_splits,
+                n_jobs=1,
+                error_score=np.nan,
+            )
+        if scoring.startswith("neg_"):
+            scores = -scores
+        if not np.isnan(scores).all():
+            metric_mean = float(np.nanmean(scores))
+            metric_std = float(np.nanstd(scores))
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning("Cross-validation for %s failed during fallback scoring: %s", label, exc)
+
+    return metric_mean, metric_std, best_params
+
+def _build_pipeline(estimator: BaseEstimator, use_scaler: bool = False) -> Pipeline:
+    steps: list[tuple[str, TransformerMixin | BaseEstimator]] = [
+        (
+            "feature_selector",
+            CorrelatedFeatureDropper(
+                correlation_threshold=FEATURE_CORRELATION_THRESHOLD,
+                min_variance=FEATURE_MIN_VARIANCE,
+            ),
+        ),
         ("imputer", SimpleImputer(strategy="median")),
-        ("est", estimator),
-    ])
+    ]
+    if use_scaler:
+        steps.append(("scaler", StandardScaler()))
+    steps.append(("est", estimator))
+    return Pipeline(steps)
 
 def _log_feature_selection(selector: CorrelatedFeatureDropper | None, label: str) -> None:
     if selector is None:
@@ -178,50 +297,432 @@ def _log_feature_selection(selector: CorrelatedFeatureDropper | None, label: str
             preview,
             more,
         )
+
+
+@dataclass(frozen=True)
+class ModelCandidate:
+    """Factory container for a classifier/regressor pair."""
+
+    name: str
+    display_name: str
+    build_classifier: Callable[[], Pipeline]
+    build_regressor: Callable[[], Pipeline]
+    clf_param_distributions: dict[str, Sequence] | None = None
+    reg_param_distributions: dict[str, Sequence] | None = None
+
+
+def _xgboost_available() -> bool:
+    return XGBClassifier is not None and XGBRegressor is not None
+
+
+def _build_model_candidates() -> list[ModelCandidate]:
+    candidates: list[ModelCandidate] = []
+
+    def default_classifier() -> Pipeline:
+        return _build_pipeline(HistGradientBoostingClassifier(**CLF_PARAMS))
+
+    def default_regressor() -> Pipeline:
+        return _build_pipeline(HistGradientBoostingRegressor(**REG_PARAMS))
+
+    candidates.append(
+        ModelCandidate(
+            name="hist_gbdt",
+            display_name="Histogram Gradient Boosting",
+            build_classifier=default_classifier,
+            build_regressor=default_regressor,
+            clf_param_distributions=CLF_PARAM_DISTRIBUTIONS,
+            reg_param_distributions=REG_PARAM_DISTRIBUTIONS,
+        )
+    )
+
+    def rf_classifier() -> Pipeline:
+        return _build_pipeline(
+            RandomForestClassifier(
+                n_estimators=400,
+                max_depth=None,
+                min_samples_leaf=3,
+                n_jobs=-1,
+                random_state=RANDOM_SEED,
+                class_weight="balanced_subsample",
+            )
+        )
+
+    def rf_regressor() -> Pipeline:
+        return _build_pipeline(
+            RandomForestRegressor(
+                n_estimators=400,
+                max_depth=None,
+                min_samples_leaf=2,
+                n_jobs=-1,
+                random_state=RANDOM_SEED,
+            )
+        )
+
+    candidates.append(
+        ModelCandidate(
+            name="random_forest",
+            display_name="Random Forest",
+            build_classifier=rf_classifier,
+            build_regressor=rf_regressor,
+            clf_param_distributions=RF_CLF_PARAM_DISTRIBUTIONS,
+            reg_param_distributions=RF_REG_PARAM_DISTRIBUTIONS,
+        )
+    )
+
+    def mlp_classifier() -> Pipeline:
+        return _build_pipeline(
+            MLPClassifier(
+                hidden_layer_sizes=(128, 64),
+                activation="relu",
+                solver="adam",
+                alpha=5e-4,
+                max_iter=400,
+                early_stopping=True,
+                n_iter_no_change=15,
+                random_state=RANDOM_SEED,
+            ),
+            use_scaler=True,
+        )
+
+    def mlp_regressor() -> Pipeline:
+        return _build_pipeline(
+            MLPRegressor(
+                hidden_layer_sizes=(128, 64),
+                activation="relu",
+                solver="adam",
+                alpha=5e-4,
+                max_iter=400,
+                early_stopping=True,
+                n_iter_no_change=15,
+                random_state=RANDOM_SEED,
+            ),
+            use_scaler=True,
+        )
+
+    candidates.append(
+        ModelCandidate(
+            name="neural_network",
+            display_name="Neural Network (MLP)",
+            build_classifier=mlp_classifier,
+            build_regressor=mlp_regressor,
+            clf_param_distributions=MLP_CLF_PARAM_DISTRIBUTIONS,
+            reg_param_distributions=MLP_REG_PARAM_DISTRIBUTIONS,
+        )
+    )
+
+    if _xgboost_available():
+
+        def xgb_classifier() -> Pipeline:
+            return _build_pipeline(
+                XGBClassifier(
+                    objective="binary:logistic",
+                    eval_metric="logloss",
+                    n_estimators=350,
+                    learning_rate=0.08,
+                    max_depth=6,
+                    subsample=0.9,
+                    colsample_bytree=0.9,
+                    reg_lambda=1.0,
+                    gamma=0.0,
+                    random_state=RANDOM_SEED,
+                    n_jobs=1,
+                    verbosity=0,
+                    tree_method="hist",
+                )
+            )
+
+        def xgb_regressor() -> Pipeline:
+            return _build_pipeline(
+                XGBRegressor(
+                    objective="reg:squarederror",
+                    n_estimators=400,
+                    learning_rate=0.08,
+                    max_depth=6,
+                    subsample=0.9,
+                    colsample_bytree=0.9,
+                    reg_lambda=1.0,
+                    gamma=0.0,
+                    random_state=RANDOM_SEED,
+                    n_jobs=1,
+                    verbosity=0,
+                    tree_method="hist",
+                )
+            )
+
+        candidates.append(
+            ModelCandidate(
+                name="xgboost",
+                display_name="XGBoost",
+                build_classifier=xgb_classifier,
+                build_regressor=xgb_regressor,
+                clf_param_distributions=XGB_CLF_PARAM_DISTRIBUTIONS,
+                reg_param_distributions=XGB_REG_PARAM_DISTRIBUTIONS,
+            )
+        )
+
+    return candidates
+
+
+def _format_metric(mean: float | None, std: float | None, lower_is_better: bool = False) -> str:
+    if mean is None or np.isnan(mean):
+        return "n/a"
+    if std is None or np.isnan(std):
+        return f"{mean:.4f}"
+    direction = "↓" if lower_is_better else "↑"
+    return f"{mean:.4f} ± {std:.4f} {direction}"
+
+
+def _evaluate_model_candidates(
+    candidates: Sequence[ModelCandidate],
+    X_train: pd.DataFrame,
+    y_start: np.ndarray,
+    y_points: pd.Series,
+) -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
+
+    def _cv_splits(n_samples: int) -> int | None:
+        if n_samples < 2:
+            return None
+        return min(HYPERPARAM_TUNING_CV, n_samples)
+
+    clf_cv = _cv_splits(len(y_start))
+    reg_cv = _cv_splits(len(y_points))
+
+    for candidate in candidates:
+        result: dict[str, Any] = {
+            "candidate": candidate,
+            "name": candidate.display_name,
+            "clf_balanced_accuracy": np.nan,
+            "clf_balanced_accuracy_std": np.nan,
+            "reg_mae": np.nan,
+            "reg_mae_std": np.nan,
+            "clf_best_params": None,
+            "reg_best_params": None,
+        }
+
+        if clf_cv is None or np.unique(y_start).size < 2:
+            logger.info(
+                "Skipping classifier CV for %s: insufficient target variation.",
+                candidate.display_name,
+            )
+        else:
+            mean, std, best_params = _tune_and_score(
+                candidate.build_classifier,
+                candidate.clf_param_distributions,
+                X_train,
+                y_start,
+                label=f"classifier[{candidate.name}]",
+                scoring="balanced_accuracy",
+                require_two_classes=True,
+                cv=clf_cv,
+            )
+            result["clf_balanced_accuracy"] = mean
+            result["clf_balanced_accuracy_std"] = std
+            result["clf_best_params"] = best_params
+
+        if reg_cv is None:
+            logger.info(
+                "Skipping regressor CV for %s: insufficient samples.",
+                candidate.display_name,
+            )
+        else:
+            mean, std, best_params = _tune_and_score(
+                candidate.build_regressor,
+                candidate.reg_param_distributions,
+                X_train,
+                y_points,
+                label=f"regressor[{candidate.name}]",
+                scoring="neg_mean_absolute_error",
+                cv=reg_cv,
+            )
+            result["reg_mae"] = mean
+            result["reg_mae_std"] = std
+            result["reg_best_params"] = best_params
+
+        results.append(result)
+
+        logger.info(
+            "Candidate %s | classifier=%s | regressor=%s",
+            candidate.display_name,
+            _format_metric(
+                result["clf_balanced_accuracy"],
+                result["clf_balanced_accuracy_std"],
+                lower_is_better=False,
+            ),
+            _format_metric(
+                result["reg_mae"],
+                result["reg_mae_std"],
+                lower_is_better=True,
+            ),
+        )
+
+    summary_records = []
+    for res in results:
+        summary_records.append(
+            {
+                "model": res["name"],
+                "balanced_accuracy_mean": res["clf_balanced_accuracy"],
+                "balanced_accuracy_std": res["clf_balanced_accuracy_std"],
+                "mae_mean": res["reg_mae"],
+                "mae_std": res["reg_mae_std"],
+            }
+        )
+
+    if summary_records:
+        summary_df = pd.DataFrame(summary_records)
+        summary_path = MODELS_DIR / "model_selection_summary.csv"
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        summary_df.to_csv(summary_path, index=False)
+        logger.info("Saved model selection summary to %s", summary_path)
+
+    return results
+
+
 def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, Pipeline]:
     """
-    Train classifier (starts >=60) and regressor (points).
-    For classifier target we derive from y_train's proxy minutes (not present here) ->
-    we will approximate starts using 'minutes_ma3' threshold. If absent, fall back to points threshold.
+    Train classifier (starts >=60) and regressor (points) by comparing multiple model families.
     """
-    # Heuristic "start" target from rolling minutes if available, else from last match minutes or points
+
     def derive_start_target(df: pd.DataFrame) -> np.ndarray:
         if "minutes_ma3" in df.columns:
             arr = (df["minutes_ma3"].values >= 60).astype(int)
-            if arr.sum() > 10:  # valid
+            if arr.sum() > 10:
                 return arr
         if "minutes_lag1" in df.columns:
             arr = (df["minutes_lag1"].values >= 60).astype(int)
             if arr.sum() > 10:
                 return arr
-        # last resort: proxy from points
         return (df.get("total_points_ma3", pd.Series(0, index=df.index)).values >= 2).astype(int)
 
     y_start = derive_start_target(X_train)
-    # Pipelines with feature selection + optional tuning
-    clf_pipeline = _build_pipeline(HistGradientBoostingClassifier(**CLF_PARAMS))
-    reg_pipeline = _build_pipeline(HistGradientBoostingRegressor(**REG_PARAMS))
 
-    clf = _fit_with_optional_tuning(
-        clf_pipeline,
-        CLF_PARAM_DISTRIBUTIONS,
-        X_train,
-        y_start,
-        label="classifier",
-        scoring="balanced_accuracy",
-        require_two_classes=True,
+    candidates = _build_model_candidates()
+    evaluation_results = _evaluate_model_candidates(candidates, X_train, y_start, y_train)
+
+    # Default selections fall back to the first candidate (histogram gradient boosting)
+    best_clf_candidate = candidates[0]
+    best_reg_candidate = candidates[0]
+    best_clf_metrics: dict[str, Any] | None = None
+    best_reg_metrics: dict[str, Any] | None = None
+
+    for res in evaluation_results:
+        if not np.isnan(res.get("clf_balanced_accuracy", np.nan)):
+            if (
+                best_clf_metrics is None
+                or res["clf_balanced_accuracy"] > best_clf_metrics["clf_balanced_accuracy"]
+            ):
+                best_clf_metrics = res
+                best_clf_candidate = res["candidate"]
+        if not np.isnan(res.get("reg_mae", np.nan)):
+            if best_reg_metrics is None or res["reg_mae"] < best_reg_metrics["reg_mae"]:
+                best_reg_metrics = res
+                best_reg_candidate = res["candidate"]
+
+    if best_clf_metrics:
+        logger.info(
+            "Selected classifier model: %s (balanced_accuracy=%s)",
+            best_clf_candidate.display_name,
+            _format_metric(
+                best_clf_metrics["clf_balanced_accuracy"],
+                best_clf_metrics["clf_balanced_accuracy_std"],
+                lower_is_better=False,
+            ),
+        )
+    else:
+        logger.info(
+            "Falling back to default classifier model: %s",
+            best_clf_candidate.display_name,
+        )
+
+    if best_reg_metrics:
+        logger.info(
+            "Selected regressor model: %s (MAE=%s)",
+            best_reg_candidate.display_name,
+            _format_metric(
+                best_reg_metrics["reg_mae"],
+                best_reg_metrics["reg_mae_std"],
+                lower_is_better=True,
+            ),
+        )
+    else:
+        logger.info(
+            "Falling back to default regressor model: %s",
+            best_reg_candidate.display_name,
+        )
+
+    clf_pipeline = best_clf_candidate.build_classifier()
+    reg_pipeline = best_reg_candidate.build_regressor()
+    clf_override_params = (
+        best_clf_metrics.get("clf_best_params") if best_clf_metrics else None
     )
-    reg = _fit_with_optional_tuning(
-        reg_pipeline,
-        REG_PARAM_DISTRIBUTIONS,
-        X_train,
-        y_train,
-        label="regressor",
-        scoring="neg_mean_squared_error",
+    reg_override_params = (
+        best_reg_metrics.get("reg_best_params") if best_reg_metrics else None
     )
 
-    _log_feature_selection(clf.named_steps.get("feature_selector"), "classifier")
-    _log_feature_selection(reg.named_steps.get("feature_selector"), "regressor")
+    try:
+        clf = _fit_with_optional_tuning(
+            clf_pipeline,
+            best_clf_candidate.clf_param_distributions,
+            X_train,
+            y_start,
+            label=f"classifier[{best_clf_candidate.name}]",
+            scoring="balanced_accuracy",
+            require_two_classes=True,
+            override_params=clf_override_params,
+        )
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        logger.warning(
+            "Training classifier %s failed (%s); reverting to Histogram Gradient Boosting.",
+            best_clf_candidate.display_name,
+            exc,
+        )
+        fallback = candidates[0]
+        clf = _fit_with_optional_tuning(
+            fallback.build_classifier(),
+            fallback.clf_param_distributions,
+            X_train,
+            y_start,
+            label=f"classifier[{fallback.name}]",
+            scoring="balanced_accuracy",
+            require_two_classes=True,
+        )
+        best_clf_candidate = fallback
+
+    try:
+        reg = _fit_with_optional_tuning(
+            reg_pipeline,
+            best_reg_candidate.reg_param_distributions,
+            X_train,
+            y_train,
+            label=f"regressor[{best_reg_candidate.name}]",
+            scoring="neg_mean_absolute_error",
+            override_params=reg_override_params,
+        )
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        logger.warning(
+            "Training regressor %s failed (%s); reverting to Histogram Gradient Boosting.",
+            best_reg_candidate.display_name,
+            exc,
+        )
+        fallback = candidates[0]
+        reg = _fit_with_optional_tuning(
+            fallback.build_regressor(),
+            fallback.reg_param_distributions,
+            X_train,
+            y_train,
+            label=f"regressor[{fallback.name}]",
+            scoring="neg_mean_absolute_error",
+        )
+        best_reg_candidate = fallback
+
+    _log_feature_selection(
+        clf.named_steps.get("feature_selector"),
+        f"classifier ({best_clf_candidate.display_name})",
+    )
+    _log_feature_selection(
+        reg.named_steps.get("feature_selector"),
+        f"regressor ({best_reg_candidate.display_name})",
+    )
 
     # Ensure model directory exists before persisting artifacts
     CLF_PATH.parent.mkdir(parents=True, exist_ok=True)
