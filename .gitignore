@@ -26,11 +26,11 @@ __pycache__/
 models/*.joblib
 models/*.pkl
 models/state.json
-models/model_selection_summary.csv
+#models/model_selection_summary.csv
 
 # Run outputs and logs
 #outputs/
-logs/
+#logs/
 
 # IDE metadata
 .vscode/
