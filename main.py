@@ -187,7 +187,15 @@ def run_pipeline(force_refetch: bool = False):
         )
 
         # 6) Predict EP for next GW
-        meta_cols = ["player_id", "full_name", "team_name", "now_cost_millions", "team_id", "element_type"]
+        meta_cols = [
+            "player_id",
+            "full_name",
+            "team_name",
+            "now_cost_millions",
+            "team_id",
+            "element_type",
+            "reliability_weight",
+        ]
         per_model_raw_cols: list[str] = []
         per_model_corrected_cols: list[str] = []
         ensemble_predictions = None
