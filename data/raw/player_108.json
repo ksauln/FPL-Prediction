@@ -107,7 +107,7 @@
       "finished": false,
       "minutes": 0,
       "provisional_start_time": false,
-      "kickoff_time": "2025-12-03T20:00:00Z",
+      "kickoff_time": "2025-12-03T19:30:00Z",
       "event_name": "Gameweek 14",
       "is_home": false,
       "difficulty": 4
@@ -139,7 +139,7 @@
       "finished": false,
       "minutes": 0,
       "provisional_start_time": false,
-      "kickoff_time": "2025-12-13T15:00:00Z",
+      "kickoff_time": "2025-12-14T16:30:00Z",
       "event_name": "Gameweek 16",
       "is_home": true,
       "difficulty": 2
@@ -2481,7 +2481,7 @@
       "expected_goals_conceded": "21.70"
     }
   ],
-  "_fetched_ts": 1760531963,
+  "_fetched_ts": 1760558013,
   "_history_season_codes": [
     "2025-26",
     "2024-25",

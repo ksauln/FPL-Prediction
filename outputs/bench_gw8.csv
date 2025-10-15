@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-106,Nathan Collins,Brentford,5,2,4.9,2.5593554498217475,0,1,0,1,WHU (A)
-10,Myles Lewis-Skelly,Arsenal,1,2,5.2,1.4849982841282814,0,1,0,2,FUL (A)
-100,Eli Junior Kroupi,Bournemouth,4,4,4.5,0.6907205369508119,0,1,0,3,CRY (A)
-1,David Raya Martín,Arsenal,1,1,5.7,3.5481511876056286,0,1,0,4,FUL (A)
+338,Rodrigo Muniz Carvalho,Fulham,10,4,5.4,1.4293402671265143,0,1,0,1,ARS (H)
+235,Cole Palmer,Chelsea,7,3,10.3,0.003155117815392226,0,1,0,2,NFO (A)
+116,Aaron Hickey,Brentford,5,2,4.0,4.1045460131351965e-07,0,1,0,3,WHU (A)
+255,Remi Matthews,Crystal Palace,8,1,4.0,0.0,0,1,0,4,BOU (H)
