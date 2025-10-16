@@ -1,17 +1,17 @@
 {
   "squad": [
     {
-      "player_id": 670,
-      "full_name": "Robin Roefs",
-      "team_name": "Sunderland",
-      "team_id": 17,
+      "player_id": 565,
+      "full_name": "Guglielmo Vicario",
+      "team_name": "Spurs",
+      "team_id": 18,
       "element_type": 1,
-      "now_cost_millions": 4.6,
-      "expected_points": 3.008979098307548,
+      "now_cost_millions": 5.1,
+      "expected_points": 4.388450719031157,
       "starting": 1,
       "bench": 0,
       "captain": 0,
-      "next_fixture": "NFO (A)"
+      "next_fixture": "WOL (H)"
     },
     {
       "player_id": 232,
@@ -20,50 +20,50 @@
       "team_id": 7,
       "element_type": 2,
       "now_cost_millions": 4.4,
-      "expected_points": 4.600168524408342,
+      "expected_points": 7.077634923259852,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "BHA (H)"
     },
     {
-      "player_id": 709,
-      "full_name": "Ladislav Krejc\u00ed",
-      "team_name": "Wolves",
-      "team_id": 20,
+      "player_id": 226,
+      "full_name": "Trevoh Chalobah",
+      "team_name": "Chelsea",
+      "team_id": 7,
       "element_type": 2,
-      "now_cost_millions": 4.5,
-      "expected_points": 4.023335028062066,
+      "now_cost_millions": 5.1,
+      "expected_points": 5.082447068308038,
       "starting": 1,
       "bench": 0,
       "captain": 0,
-      "next_fixture": "TOT (A)"
+      "next_fixture": "BHA (H)"
     },
     {
-      "player_id": 148,
-      "full_name": "Ferdi Kad\u0131o\u011flu",
-      "team_name": "Brighton",
-      "team_id": 6,
+      "player_id": 474,
+      "full_name": "Fabian Sch\u00e4r",
+      "team_name": "Newcastle",
+      "team_id": 15,
       "element_type": 2,
-      "now_cost_millions": 4.4,
-      "expected_points": 3.5988559201320443,
+      "now_cost_millions": 5.4,
+      "expected_points": 4.9757624232506,
       "starting": 1,
       "bench": 0,
       "captain": 0,
-      "next_fixture": "CHE (A)"
+      "next_fixture": "ARS (H)"
     },
     {
-      "player_id": 694,
-      "full_name": "Nordi Mukiele",
-      "team_name": "Sunderland",
-      "team_id": 17,
+      "player_id": 5,
+      "full_name": "Gabriel dos Santos Magalh\u00e3es",
+      "team_name": "Arsenal",
+      "team_id": 1,
       "element_type": 2,
-      "now_cost_millions": 4.0,
-      "expected_points": 3.5782732743272287,
+      "now_cost_millions": 6.3,
+      "expected_points": 4.635159937562621,
       "starting": 1,
       "bench": 0,
       "captain": 0,
-      "next_fixture": "NFO (A)"
+      "next_fixture": "NEW (A)"
     },
     {
       "player_id": 698,
@@ -72,24 +72,11 @@
       "team_id": 11,
       "element_type": 3,
       "now_cost_millions": 5.5,
-      "expected_points": 8.003962365212448,
+      "expected_points": 8.371050475344015,
       "starting": 1,
       "bench": 0,
       "captain": 1,
       "next_fixture": "BOU (H)"
-    },
-    {
-      "player_id": 26,
-      "full_name": "Mart\u00edn Zubimendi Ib\u00e1\u00f1ez",
-      "team_name": "Arsenal",
-      "team_id": 1,
-      "element_type": 3,
-      "now_cost_millions": 5.5,
-      "expected_points": 4.996355687168454,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0,
-      "next_fixture": "NEW (A)"
     },
     {
       "player_id": 449,
@@ -98,11 +85,24 @@
       "team_id": 14,
       "element_type": 3,
       "now_cost_millions": 9.0,
-      "expected_points": 4.114441952493781,
+      "expected_points": 7.613485731513208,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "BRE (A)"
+    },
+    {
+      "player_id": 26,
+      "full_name": "Mart\u00edn Zubimendi Ib\u00e1\u00f1ez",
+      "team_name": "Arsenal",
+      "team_id": 1,
+      "element_type": 3,
+      "now_cost_millions": 5.5,
+      "expected_points": 5.8798498533548065,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "NEW (A)"
     },
     {
       "player_id": 157,
@@ -111,11 +111,24 @@
       "team_id": 6,
       "element_type": 3,
       "now_cost_millions": 6.3,
-      "expected_points": 3.642128759815091,
+      "expected_points": 5.023867534070402,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "CHE (A)"
+    },
+    {
+      "player_id": 205,
+      "full_name": "Josh Cullen",
+      "team_name": "Burnley",
+      "team_id": 3,
+      "element_type": 3,
+      "now_cost_millions": 5.0,
+      "expected_points": 4.843584473098066,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "MCI (A)"
     },
     {
       "player_id": 691,
@@ -124,11 +137,41 @@
       "team_id": 11,
       "element_type": 4,
       "now_cost_millions": 5.5,
-      "expected_points": 4.771896152686001,
+      "expected_points": 5.643015392561332,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "BOU (H)"
+    }
+  ],
+  "bench": [
+    {
+      "player_id": 249,
+      "full_name": "Jo\u00e3o Pedro Junqueira de Jesus",
+      "team_name": "Chelsea",
+      "team_id": 7,
+      "element_type": 4,
+      "now_cost_millions": 7.7,
+      "expected_points": 5.150553878022529,
+      "starting": 0,
+      "bench": 1,
+      "captain": 0,
+      "bench_order": 1,
+      "next_fixture": "BHA (H)"
+    },
+    {
+      "player_id": 260,
+      "full_name": "Marc Gu\u00e9hi",
+      "team_name": "Crystal Palace",
+      "team_id": 8,
+      "element_type": 2,
+      "now_cost_millions": 4.9,
+      "expected_points": 4.841909214934918,
+      "starting": 0,
+      "bench": 1,
+      "captain": 0,
+      "bench_order": 2,
+      "next_fixture": "LIV (H)"
     },
     {
       "player_id": 430,
@@ -137,83 +180,40 @@
       "team_id": 13,
       "element_type": 4,
       "now_cost_millions": 14.5,
-      "expected_points": 3.4342509037913813,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0,
-      "next_fixture": "BUR (H)"
-    }
-  ],
-  "bench": [
-    {
-      "player_id": 119,
-      "full_name": "Bryan Mbeumo",
-      "team_name": "Man Utd",
-      "team_id": 14,
-      "element_type": 3,
-      "now_cost_millions": 8.1,
-      "expected_points": 1.0756865498218697,
-      "starting": 0,
-      "bench": 1,
-      "captain": 0,
-      "bench_order": 1,
-      "next_fixture": "BRE (A)"
-    },
-    {
-      "player_id": 10,
-      "full_name": "Myles Lewis-Skelly",
-      "team_name": "Arsenal",
-      "team_id": 1,
-      "element_type": 2,
-      "now_cost_millions": 5.2,
-      "expected_points": 0.46319924974600396,
-      "starting": 0,
-      "bench": 1,
-      "captain": 0,
-      "bench_order": 2,
-      "next_fixture": "NEW (A)"
-    },
-    {
-      "player_id": 100,
-      "full_name": "Eli Junior Kroupi",
-      "team_name": "Bournemouth",
-      "team_id": 4,
-      "element_type": 4,
-      "now_cost_millions": 4.5,
-      "expected_points": 0.1418664431023694,
+      "expected_points": 4.337332695143141,
       "starting": 0,
       "bench": 1,
       "captain": 0,
       "bench_order": 3,
-      "next_fixture": "LEE (A)"
+      "next_fixture": "BUR (H)"
     },
     {
-      "player_id": 1,
-      "full_name": "David Raya Mart\u00edn",
-      "team_name": "Arsenal",
-      "team_id": 1,
+      "player_id": 469,
+      "full_name": "Nick Pope",
+      "team_name": "Newcastle",
+      "team_id": 15,
       "element_type": 1,
-      "now_cost_millions": 5.7,
-      "expected_points": 1.3365238146127802,
+      "now_cost_millions": 5.1,
+      "expected_points": 3.4704550859196233,
       "starting": 0,
       "bench": 1,
       "captain": 0,
       "bench_order": 4,
-      "next_fixture": "NEW (A)"
+      "next_fixture": "ARS (H)"
     }
   ],
-  "total_cost": 91.69999999999999,
-  "starting_cost": 68.19999999999999,
-  "bench_cost": 23.5,
-  "expected_points_without_captain": 47.77264766640438,
-  "total_expected_points_with_captain": 55.776610031616826,
-  "bench_expected_points": 3.0172760572830235,
+  "total_cost": 95.3,
+  "starting_cost": 63.099999999999994,
+  "bench_cost": 32.2,
+  "expected_points_without_captain": 63.5343085313541,
+  "total_expected_points_with_captain": 71.90535900669812,
+  "bench_expected_points": 17.80025087402021,
   "captain": "Noah Okafor",
   "formation": {
     "GK": 1,
     "DEF": 4,
-    "MID": 4,
-    "FWD": 2
+    "MID": 5,
+    "FWD": 1
   },
-  "formation_name": "4-4-2"
+  "formation_name": "4-5-1"
 }

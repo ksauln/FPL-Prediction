@@ -60,7 +60,9 @@ pip install -r requirements.txt
 python main.py              # runs the full pipeline
 ```
 
-Environment variables can override logging paths or toggle features; consult `config.py` for available knobs.
+To include historical CSVs from the vaastav archive, clone the repo into `data/external/Fantasy-Premier-League` (matching the default path in `config.py`). The pipeline will automatically fall back to API-only data if those files are absent.
+
+Adjustments to paths, feature toggles, and model settings live in `fplmodel/config.py`.
 
 ### 3.1 Gameweek Overrides & Replay
 - Single backdated run: `python main.py --override-last-finished-gw 4 --override-next-gw 5`
@@ -134,7 +136,7 @@ Environment variables can override logging paths or toggle features; consult `co
 
 ### 4.7 Squad Optimisation (`team_picker.pick_best_xi`)
 - Formulates an integer linear program using PuLP:
-  - Decision variables for each player (start, bench, captain, vice).
+  - Decision variables for each player (start, bench, captain).
   - Constraints: budget, formation options (`FORMATION_OPTIONS`), positional minimums, max three per club, total squad size (15) and bench order.
 - Produces:
   - Starting XI with captaincy applied.
@@ -162,7 +164,7 @@ Environment variables can override logging paths or toggle features; consult `co
   - **Bias behaviour** (`EMA_ALPHA`, ability to clamp in `state.py`)
   - **Optimisation constraints** (budget, formations)
   - **GPU usage** (`ENABLE_GPU_TRAINING`)
-- You can override constants via environment variables or secondary config layers if desired.
+- Update those constants directly in `config.py`, or layer your own environment-variable handling around it if you need runtime overrides.
 - Removing `models/state.json` resets all stored biases; otherwise the EMA continues from previous runs.
 
 ---
