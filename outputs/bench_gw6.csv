@@ -1,0 +1,5 @@
+player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
+119,Bryan Mbeumo,Man Utd,14,3,8.1,1.0756865498218697,0,1,0,1,BRE (A)
+10,Myles Lewis-Skelly,Arsenal,1,2,5.2,0.46319924974600396,0,1,0,2,NEW (A)
+100,Eli Junior Kroupi,Bournemouth,4,4,4.5,0.1418664431023694,0,1,0,3,LEE (A)
+1,David Raya Martín,Arsenal,1,1,5.7,1.3365238146127802,0,1,0,4,NEW (A)
