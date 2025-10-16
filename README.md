@@ -184,7 +184,26 @@ Adjustments to paths, feature toggles, and model settings live in `fplmodel/conf
 
 ---
 
-## 7. Future Enhancements
+## 7. Team Analysis & Streamlit App
+
+- `fplmodel.team_analysis` introduces helpers to summarise a user squad and compare it
+  against the optimiser's recommended XI. Use `compare_team_to_optimal` when you have
+  the model predictions for a given gameweek alongside the user's roster.
+- `fplmodel.transfer_recommender` aggregates predictions across upcoming gameweeks and
+  proposes transfer moves that close the gap to the optimal squad while respecting the
+  available free transfers.
+- `streamlit_app.py` provides a multi-page Streamlit interface:
+  - **Optimal Team** – upload predictions to view the best XI, bench and captaincy call.
+  - **Team Comparison** – drop in your current squad to receive a rating versus the
+    optimiser for the gameweek.
+  - **Transfer Recommender** – supply predictions for the next few gameweeks to obtain
+    suggested transfers and see the resulting optimal squad.
+- Run the app locally with `streamlit run streamlit_app.py` after installing the
+  dependencies in `requirements.txt`.
+
+---
+
+## 8. Future Enhancements
 
 - Fixture-level modelling (predict individual matches and aggregate).
 - Injury/news sentiment ingestion to adjust playing time priors.
@@ -194,7 +213,7 @@ Adjustments to paths, feature toggles, and model settings live in `fplmodel/conf
 
 ---
 
-## 8. License & Acknowledgements
+## 9. License & Acknowledgements
 
 - Uses the official Fantasy Premier League API and historical data snapshots courtesy of [vaastav/Fantasy-Premier-League](https://github.com/vaastav/Fantasy-Premier-League).
 - Respect FPL’s terms of service when sharing or automating.
