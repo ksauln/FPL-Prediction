@@ -1,0 +1,5 @@
+player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
+261,Chris Richards,Crystal Palace,8,2,4.5,4.408893500107809,0,1,0,1,BHA (H)
+457,Carlos Henrique Casimiro,Man Utd,14,3,5.5,4.210357841478535,0,1,0,2,TOT (A)
+178,Danny Welbeck,Brighton,6,4,6.3,3.3663318008243333,0,1,0,3,CRY (A)
+733,Senne Lammens,Man Utd,14,1,5.0,3.7345192726244516,0,1,0,4,TOT (A)

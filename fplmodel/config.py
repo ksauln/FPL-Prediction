@@ -147,7 +147,7 @@ SQUAD_POSITION_LIMITS = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
 BENCH_SIZE = 4
 BENCH_GK_COUNT = 1
 MAX_PER_TEAM = 3
-BENCH_EP_WEIGHT = 1.0  # weight for bench expected points in optimisation objective
+BENCH_EP_WEIGHT = 1.0  # weight for bench expected points in optimization objective
 
 # Training window: set None to use all finished GWs
 MAX_TRAIN_GW = None
