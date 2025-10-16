@@ -62,6 +62,13 @@ python main.py              # runs the full pipeline
 
 Environment variables can override logging paths or toggle features; consult `config.py` for available knobs.
 
+### 3.1 Gameweek Overrides & Replay
+- Single backdated run: `python main.py --override-last-finished-gw 4 --override-next-gw 5`
+- Sequential rebuild (example GW5–7): `python main.py --force-refetch --replay-start-gw 5 --replay-end-gw 7`
+- Only the first replay iteration honours `--force-refetch`; later runs reuse cached data.
+- Overrides let you reconstruct history so EMA biases in `models/state.json` evolve just as they would week by week.
+- Without overrides the pipeline relies on live `bootstrap-static` metadata to infer the current gameweek automatically.
+
 ---
 
 ## 4. Detailed Pipeline Walkthrough

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import argparse
 from collections import defaultdict
 import json
 import os
@@ -67,7 +68,11 @@ def build_fixture_labels(fixtures_df: pd.DataFrame, teams_df: pd.DataFrame, next
 
     return {team_id: " / ".join(parts) for team_id, parts in fixtures_map.items()}
 
-def run_pipeline(force_refetch: bool = False):
+def run_pipeline(
+    force_refetch: bool = False,
+    override_next_gw: int | None = None,
+    override_last_finished_gw: int | None = None,
+):
     logger, file_handler, log_path = configure_run_logger()
     logger.info("Starting pipeline run (force_refetch=%s)", force_refetch)
 
@@ -99,7 +104,31 @@ def run_pipeline(force_refetch: bool = False):
                     MAX_TRAIN_GW,
                 )
                 last_finished_gw = capped
+        override_applied = False
+        if override_next_gw is not None:
+            next_gw = int(override_next_gw)
+            override_applied = True
+        if override_last_finished_gw is not None:
+            last_finished_gw = int(override_last_finished_gw)
+            override_applied = True
+        elif override_next_gw is not None:
+            last_finished_gw = max(int(override_next_gw) - 1, 0)
+            override_applied = True
+        if override_applied:
+            if last_finished_gw >= next_gw:
+                adjusted = max(next_gw - 1, 0)
+                logger.warning(
+                    "Override produced last_finished_gw >= next_gw; adjusting last_finished_gw to %s",
+                    adjusted,
+                )
+                last_finished_gw = adjusted
+            logger.info(
+                "Gameweek override applied -> next_gw=%s | last_finished_gw=%s",
+                next_gw,
+                last_finished_gw,
+            )
         logger.info("Next gameweek: %s | Last finished gameweek: %s", next_gw, last_finished_gw)
+
         file_handler, log_path = update_log_filename_for_gameweek(logger, file_handler, log_path, next_gw)
 
         # 2) Player histories (bulk)
@@ -370,6 +399,71 @@ def run_pipeline(force_refetch: bool = False):
             pass
         file_handler.close()
 
+def replay_gameweeks(
+    start_gw: int,
+    end_gw: int | None = None,
+    force_refetch: bool = False,
+) -> list[dict[str, object]]:
+    """
+    Sequentially run the pipeline for a range of gameweeks using GW overrides.
+    """
+    if start_gw < 1:
+        raise ValueError("start_gw must be >= 1")
+    end_gw = start_gw if end_gw is None else end_gw
+    if end_gw < start_gw:
+        raise ValueError("end_gw must be >= start_gw")
+
+    results: list[dict[str, object]] = []
+    for idx, gw in enumerate(range(start_gw, end_gw + 1)):
+        run_force_refetch = force_refetch if idx == 0 else False
+        result = run_pipeline(
+            force_refetch=run_force_refetch,
+            override_next_gw=gw,
+            override_last_finished_gw=max(gw - 1, 0),
+        )
+        results.append(result)
+    return results
+
 if __name__ == "__main__":
-    out = run_pipeline(force_refetch=False)
-    print(json.dumps(out, indent=2))
+    parser = argparse.ArgumentParser(description="Run the FPL prediction pipeline.")
+    parser.add_argument(
+        "--force-refetch",
+        action="store_true",
+        help="Ignore cached API responses and refetch all upstream data.",
+    )
+    parser.add_argument(
+        "--override-next-gw",
+        type=int,
+        help="Manually set the next gameweek for a single pipeline run.",
+    )
+    parser.add_argument(
+        "--override-last-finished-gw",
+        type=int,
+        help="Manually set the last finished gameweek for a single pipeline run.",
+    )
+    parser.add_argument(
+        "--replay-start-gw",
+        type=int,
+        help="Start gameweek for sequential replay using overrides.",
+    )
+    parser.add_argument(
+        "--replay-end-gw",
+        type=int,
+        help="End gameweek (inclusive) for sequential replay. Defaults to start.",
+    )
+    args = parser.parse_args()
+
+    if args.replay_start_gw is not None:
+        results = replay_gameweeks(
+            start_gw=args.replay_start_gw,
+            end_gw=args.replay_end_gw,
+            force_refetch=args.force_refetch,
+        )
+        print(json.dumps(results, indent=2))
+    else:
+        out = run_pipeline(
+            force_refetch=args.force_refetch,
+            override_next_gw=args.override_next_gw,
+            override_last_finished_gw=args.override_last_finished_gw,
+        )
+        print(json.dumps(out, indent=2))
