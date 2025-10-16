@@ -162,22 +162,69 @@ def recommend_transfers(
             "expected_points_by_gw": per_gw,
         }
 
-    outgoing_ids.sort(key=lambda pid: player_lookup.loc[pid, "expected_points"])
-    incoming_ids.sort(key=lambda pid: player_lookup.loc[pid, "expected_points"], reverse=True)
-
     transfer_suggestions = []
-    for pid_out, pid_in in zip(outgoing_ids, incoming_ids):
-        if len(transfer_suggestions) >= transfers_limit:
-            break
-        out_ep = float(player_lookup.loc[pid_out, "expected_points"])
-        in_ep = float(player_lookup.loc[pid_in, "expected_points"])
-        transfer_suggestions.append(
-            {
-                "out_player": _player_record(pid_out),
-                "in_player": _player_record(pid_in),
-                "expected_points_delta": in_ep - out_ep,
-            }
-        )
+    if transfers_limit > 0:
+        # Group players by position to keep replacements position-aligned where possible.
+        def _sort_outgoing(ids):
+            return sorted(ids, key=lambda pid: player_lookup.loc[pid, "expected_points"])
+
+        def _sort_incoming(ids):
+            return sorted(
+                ids,
+                key=lambda pid: player_lookup.loc[pid, "expected_points"],
+                reverse=True,
+            )
+
+        outgoing_by_pos = {}
+        incoming_by_pos = {}
+        for pid in outgoing_ids:
+            pos = int(player_lookup.loc[pid, "element_type"])
+            outgoing_by_pos.setdefault(pos, []).append(pid)
+        for pid in incoming_ids:
+            pos = int(player_lookup.loc[pid, "element_type"])
+            incoming_by_pos.setdefault(pos, []).append(pid)
+
+        remaining_outgoing: List[int] = []
+        remaining_incoming: List[int] = []
+
+        for pos in sorted(set(outgoing_by_pos) | set(incoming_by_pos)):
+            outs = _sort_outgoing(outgoing_by_pos.get(pos, []))
+            ins = _sort_incoming(incoming_by_pos.get(pos, []))
+            pair_count = min(len(outs), len(ins))
+            for idx in range(pair_count):
+                if len(transfer_suggestions) >= transfers_limit:
+                    break
+                pid_out = outs[idx]
+                pid_in = ins[idx]
+                out_ep = float(player_lookup.loc[pid_out, "expected_points"])
+                in_ep = float(player_lookup.loc[pid_in, "expected_points"])
+                transfer_suggestions.append(
+                    {
+                        "out_player": _player_record(pid_out),
+                        "in_player": _player_record(pid_in),
+                        "expected_points_delta": in_ep - out_ep,
+                    }
+                )
+            remaining_outgoing.extend(outs[pair_count:])
+            remaining_incoming.extend(ins[pair_count:])
+            if len(transfer_suggestions) >= transfers_limit:
+                break
+
+        if len(transfer_suggestions) < transfers_limit:
+            remaining_outgoing = _sort_outgoing(remaining_outgoing)
+            remaining_incoming = _sort_incoming(remaining_incoming)
+            for pid_out, pid_in in zip(remaining_outgoing, remaining_incoming):
+                if len(transfer_suggestions) >= transfers_limit:
+                    break
+                out_ep = float(player_lookup.loc[pid_out, "expected_points"])
+                in_ep = float(player_lookup.loc[pid_in, "expected_points"])
+                transfer_suggestions.append(
+                    {
+                        "out_player": _player_record(pid_out),
+                        "in_player": _player_record(pid_in),
+                        "expected_points_delta": in_ep - out_ep,
+                    }
+                )
 
     return {
         "user_team": user_summary.as_dict(),
@@ -193,4 +240,3 @@ def recommend_transfers(
 
 
 __all__ = ["aggregate_expected_points", "recommend_transfers"]
-

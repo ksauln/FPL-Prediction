@@ -7,7 +7,7 @@
       "team_id": 13,
       "element_type": 1,
       "now_cost_millions": 5.7,
-      "expected_points": 6.229328372013156,
+      "expected_points": 6.52316856970567,
       "starting": 1,
       "bench": 0,
       "captain": 0,
@@ -20,37 +20,11 @@
       "team_id": 1,
       "element_type": 2,
       "now_cost_millions": 5.9,
-      "expected_points": 5.5441903881205254,
+      "expected_points": 5.507719852470766,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "FUL (A)"
-    },
-    {
-      "player_id": 475,
-      "full_name": "Sven Botman",
-      "team_name": "Newcastle",
-      "team_id": 15,
-      "element_type": 2,
-      "now_cost_millions": 4.9,
-      "expected_points": 5.119614934316126,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0,
-      "next_fixture": "BHA (A)"
-    },
-    {
-      "player_id": 477,
-      "full_name": "Tino Livramento",
-      "team_name": "Newcastle",
-      "team_id": 15,
-      "element_type": 2,
-      "now_cost_millions": 5.0,
-      "expected_points": 4.916344778985236,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0,
-      "next_fixture": "BHA (A)"
     },
     {
       "player_id": 260,
@@ -59,11 +33,24 @@
       "team_id": 8,
       "element_type": 2,
       "now_cost_millions": 4.9,
-      "expected_points": 4.765923634071789,
+      "expected_points": 4.742188635526988,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "BOU (H)"
+    },
+    {
+      "player_id": 343,
+      "full_name": "Pascal Struijk",
+      "team_name": "Leeds",
+      "team_id": 11,
+      "element_type": 2,
+      "now_cost_millions": 4.5,
+      "expected_points": 4.732854353490121,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "BUR (A)"
     },
     {
       "player_id": 390,
@@ -72,10 +59,10 @@
       "team_id": 12,
       "element_type": 3,
       "now_cost_millions": 5.7,
-      "expected_points": 7.58530892496299,
+      "expected_points": 6.854828474916556,
       "starting": 1,
       "bench": 0,
-      "captain": 1,
+      "captain": 0,
       "next_fixture": "MUN (H)"
     },
     {
@@ -85,7 +72,7 @@
       "team_id": 11,
       "element_type": 3,
       "now_cost_millions": 5.5,
-      "expected_points": 5.71843827058431,
+      "expected_points": 5.713664443084639,
       "starting": 1,
       "bench": 0,
       "captain": 0,
@@ -98,11 +85,37 @@
       "team_id": 17,
       "element_type": 3,
       "now_cost_millions": 5.0,
-      "expected_points": 5.084990654541246,
+      "expected_points": 5.1965354303776605,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "WOL (H)"
+    },
+    {
+      "player_id": 582,
+      "full_name": "Mohammed Kudus",
+      "team_name": "Spurs",
+      "team_id": 18,
+      "element_type": 3,
+      "now_cost_millions": 6.8,
+      "expected_points": 4.896794755145939,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "AVL (H)"
+    },
+    {
+      "player_id": 160,
+      "full_name": "Yankuba Minteh",
+      "team_name": "Brighton",
+      "team_id": 6,
+      "element_type": 3,
+      "now_cost_millions": 6.0,
+      "expected_points": 4.834196988693994,
+      "starting": 1,
+      "bench": 0,
+      "captain": 0,
+      "next_fixture": "NEW (H)"
     },
     {
       "player_id": 430,
@@ -111,10 +124,10 @@
       "team_id": 13,
       "element_type": 4,
       "now_cost_millions": 14.5,
-      "expected_points": 7.512708824287595,
+      "expected_points": 8.169342729790493,
       "starting": 1,
       "bench": 0,
-      "captain": 0,
+      "captain": 1,
       "next_fixture": "EVE (H)"
     },
     {
@@ -124,11 +137,27 @@
       "team_id": 14,
       "element_type": 4,
       "now_cost_millions": 7.3,
-      "expected_points": 5.811336713489617,
+      "expected_points": 6.583170366713481,
       "starting": 1,
       "bench": 0,
       "captain": 0,
       "next_fixture": "LIV (A)"
+    }
+  ],
+  "bench": [
+    {
+      "player_id": 475,
+      "full_name": "Sven Botman",
+      "team_name": "Newcastle",
+      "team_id": 15,
+      "element_type": 2,
+      "now_cost_millions": 4.9,
+      "expected_points": 5.366905863324946,
+      "starting": 0,
+      "bench": 1,
+      "captain": 0,
+      "bench_order": 1,
+      "next_fixture": "BHA (A)"
     },
     {
       "player_id": 64,
@@ -137,36 +166,7 @@
       "team_id": 2,
       "element_type": 4,
       "now_cost_millions": 8.7,
-      "expected_points": 5.009508789989201,
-      "starting": 1,
-      "bench": 0,
-      "captain": 0,
-      "next_fixture": "TOT (A)"
-    }
-  ],
-  "bench": [
-    {
-      "player_id": 200,
-      "full_name": "Jaidon Anthony",
-      "team_name": "Burnley",
-      "team_id": 3,
-      "element_type": 3,
-      "now_cost_millions": 5.7,
-      "expected_points": 4.757344929949849,
-      "starting": 0,
-      "bench": 1,
-      "captain": 0,
-      "bench_order": 1,
-      "next_fixture": "LEE (H)"
-    },
-    {
-      "player_id": 44,
-      "full_name": "Lamare Bogarde",
-      "team_name": "Aston Villa",
-      "team_id": 2,
-      "element_type": 2,
-      "now_cost_millions": 4.0,
-      "expected_points": 4.730434670604159,
+      "expected_points": 5.098126177620378,
       "starting": 0,
       "bench": 1,
       "captain": 0,
@@ -174,18 +174,18 @@
       "next_fixture": "TOT (A)"
     },
     {
-      "player_id": 419,
-      "full_name": "Jack Grealish",
-      "team_name": "Everton",
-      "team_id": 9,
-      "element_type": 3,
-      "now_cost_millions": 6.9,
-      "expected_points": 4.600603365395211,
+      "player_id": 477,
+      "full_name": "Tino Livramento",
+      "team_name": "Newcastle",
+      "team_id": 15,
+      "element_type": 2,
+      "now_cost_millions": 5.0,
+      "expected_points": 5.051606186562197,
       "starting": 0,
       "bench": 1,
       "captain": 0,
       "bench_order": 3,
-      "next_fixture": "MCI (A)"
+      "next_fixture": "BHA (A)"
     },
     {
       "player_id": 314,
@@ -194,7 +194,7 @@
       "team_id": 10,
       "element_type": 1,
       "now_cost_millions": 5.0,
-      "expected_points": 4.896834789629757,
+      "expected_points": 5.259969459722117,
       "starting": 0,
       "bench": 1,
       "captain": 0,
@@ -202,18 +202,18 @@
       "next_fixture": "ARS (H)"
     }
   ],
-  "total_cost": 94.70000000000002,
-  "starting_cost": 73.10000000000001,
-  "bench_cost": 21.6,
-  "expected_points_without_captain": 63.297694285361786,
-  "total_expected_points_with_captain": 70.88300321032477,
-  "bench_expected_points": 18.985217755578976,
-  "captain": "Ryan Gravenberch",
+  "total_cost": 95.4,
+  "starting_cost": 71.8,
+  "bench_cost": 23.6,
+  "expected_points_without_captain": 63.75446459991631,
+  "total_expected_points_with_captain": 71.9238073297068,
+  "bench_expected_points": 20.77660768722964,
+  "captain": "Erling Haaland",
   "formation": {
     "GK": 1,
-    "DEF": 4,
-    "MID": 3,
-    "FWD": 3
+    "DEF": 3,
+    "MID": 5,
+    "FWD": 2
   },
-  "formation_name": "4-3-3"
+  "formation_name": "3-5-2"
 }

@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-83,Dango Ouattara,Brentford,5,3,6.0,4.999699352257036,0,1,0,1,FUL (A)
-72,Marcos Senesi Barón,Bournemouth,4,2,5.0,4.415764872425134,0,1,0,2,NEW (H)
-624,Jarrod Bowen,West Ham,19,4,7.7,3.2861490047419353,0,1,0,3,CRY (H)
-220,Robert Lynch Sánchez,Chelsea,7,1,4.9,4.345902720392635,0,1,0,4,MUN (A)
+106,Nathan Collins,Brentford,5,2,4.9,4.578163378422357,0,1,0,1,FUL (A)
+624,Jarrod Bowen,West Ham,19,4,7.7,4.1269828475324495,0,1,0,2,CRY (H)
+642,Hwang Hee-chan,Wolves,20,3,5.9,3.8501640061046274,0,1,0,3,LEE (H)
+670,Robin Roefs,Sunderland,17,1,4.6,5.149560755740261,0,1,0,4,AVL (H)
