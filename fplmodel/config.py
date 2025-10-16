@@ -36,7 +36,7 @@ EXTERNAL_HISTORY_SEASONS = ["2020-21", "2021-22", "2022-23", "2023-24", "2024-25
 ENABLE_GPU_TRAINING = True  # attempt to use GPU-accelerated models when available
 
 # Feature engineering
-ROLLING_WINDOWS = [5]
+ROLLING_WINDOWS = [4]
 MIN_MATCHES_FOR_FEATURES = 3  # min previous matches required to generate a training row
 
 # Bias-correction (EMA) applied after each finished GW
@@ -147,6 +147,7 @@ SQUAD_POSITION_LIMITS = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
 BENCH_SIZE = 4
 BENCH_GK_COUNT = 1
 MAX_PER_TEAM = 3
+BENCH_EP_WEIGHT = 1.0  # weight for bench expected points in optimisation objective
 
 # Training window: set None to use all finished GWs
 MAX_TRAIN_GW = None

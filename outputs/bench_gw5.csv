@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-338,Rodrigo Muniz Carvalho,Fulham,10,4,5.4,1.3880203058698248,0,1,0,1,BRE (H)
-116,Aaron Hickey,Brentford,5,2,4.0,0.7969413086460468,0,1,0,2,FUL (A)
-235,Cole Palmer,Chelsea,7,3,10.3,1.1394273661900634e-06,0,1,0,3,MUN (A)
-255,Remi Matthews,Crystal Palace,8,1,4.0,0.0,0,1,0,4,WHU (A)
+83,Dango Ouattara,Brentford,5,3,6.0,4.999699352257036,0,1,0,1,FUL (A)
+72,Marcos Senesi Barón,Bournemouth,4,2,5.0,4.415764872425134,0,1,0,2,NEW (H)
+624,Jarrod Bowen,West Ham,19,4,7.7,3.2861490047419353,0,1,0,3,CRY (H)
+220,Robert Lynch Sánchez,Chelsea,7,1,4.9,4.345902720392635,0,1,0,4,MUN (A)

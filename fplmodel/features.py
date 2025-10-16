@@ -209,13 +209,17 @@ def _rolling_feats(hist: pd.DataFrame, windows=(3, 5)) -> pd.DataFrame:
 
     stats = [col for col in base_stats + derived_features if col in hist.columns]
 
+    new_columns: Dict[str, pd.Series] = {}
     for w in windows:
         for s in stats:
             col = f"{s}_ma{w}"
-            hist[col] = _rolling_mean(group[s], w)
+            new_columns[col] = _rolling_mean(group[s], w)
 
     for s in stats:
-        hist[f"{s}_lag1"] = group[s].shift(1)
+        new_columns[f"{s}_lag1"] = group[s].shift(1)
+
+    if new_columns:
+        hist = pd.concat([hist, pd.DataFrame(new_columns, index=hist.index)], axis=1)
 
     if "was_home" in hist.columns:
         hist["was_home"] = hist["was_home"].astype(int)

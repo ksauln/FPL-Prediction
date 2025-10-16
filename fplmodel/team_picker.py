@@ -12,6 +12,7 @@ from .config import (
     FORMATION,
     MAX_PER_TEAM,
     SQUAD_POSITION_LIMITS,
+    BENCH_EP_WEIGHT,
 )
 
 POS_MAP = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
@@ -38,11 +39,12 @@ def _solve_for_formation(
     }
     prob = LpProblem("FPL_Best_Squad", LpMaximize)
 
-    # Objective: starting XI EP + captain's double (bench does not score)
+    # Objective: maximise starters (with captain double) and weighted bench EP
     ep_map = df.set_index("player_id")["expected_points"].to_dict()
-    prob += lpSum(start_vars[pid] * ep_map[pid] for pid in ep_map) + lpSum(
-        captain_vars[pid] * ep_map[pid] for pid in ep_map
-    )
+    starter_points = lpSum(start_vars[pid] * ep_map[pid] for pid in ep_map)
+    captain_points = lpSum(captain_vars[pid] * ep_map[pid] for pid in ep_map)
+    bench_points = lpSum(bench_vars[pid] * ep_map[pid] for pid in ep_map)
+    prob += starter_points + captain_points + BENCH_EP_WEIGHT * bench_points
 
     # Exactly 11 starters based on formation
     desired_xi = sum(formation.values())

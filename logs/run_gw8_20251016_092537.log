@@ -1,0 +1,65 @@
+2025-10-16 09:25:37,992 [INFO] fplmodel - Logging initialised. Writing to /Users/kyle/Documents/FPL-Prediction/logs/run_20251016_092537.log
+2025-10-16 09:25:37,992 [INFO] fplmodel - Starting pipeline run (force_refetch=False)
+2025-10-16 09:25:37,992 [INFO] fplmodel - Fetching bootstrap static data...
+2025-10-16 09:25:38,010 [INFO] fplmodel - Fetching fixtures data...
+2025-10-16 09:25:38,023 [INFO] fplmodel - Loaded normalised frames: 743 elements, 20 teams, 38 events
+2025-10-16 09:25:38,023 [INFO] fplmodel - Gameweek override applied -> next_gw=8 | last_finished_gw=7
+2025-10-16 09:25:38,023 [INFO] fplmodel - Next gameweek: 8 | Last finished gameweek: 7
+2025-10-16 09:25:38,023 [INFO] fplmodel - Renaming log file to highlight gameweek 8
+2025-10-16 09:25:38,023 [INFO] fplmodel - Log file renamed to /Users/kyle/Documents/FPL-Prediction/logs/run_gw8_20251016_092537.log
+2025-10-16 09:25:38,024 [INFO] fplmodel - Fetching player histories for 743 players (force_refetch=False)
+2025-10-16 09:25:38,422 [INFO] fplmodel - Loading 743 player history files from /Users/kyle/Documents/FPL-Prediction/data/raw
+2025-10-16 09:25:38,791 [INFO] fplmodel - Built player histories dataframe with 30438 rows
+2025-10-16 09:25:39,635 [INFO] fplmodel - Loaded 130764 external history rows for seasons 2020-21, 2021-22, 2022-23, 2023-24, 2024-25
+2025-10-16 09:25:39,704 [INFO] fplmodel - Combined history dataset now has 158552 rows
+2025-10-16 09:25:43,287 [INFO] fplmodel - Prepared features: X_train=(48078, 151), y_train=48078, X_pred=(743, 158)
+2025-10-16 09:25:43,289 [INFO] fplmodel - Training models with 151 features
+2025-10-16 09:25:43,289 [INFO] fplmodel - Training feature columns: total_points_ma4, minutes_ma4, goals_scored_ma4, assists_ma4, clean_sheets_ma4, influence_ma4, creativity_ma4, threat_ma4, ict_index_ma4, goals_conceded_ma4, own_goals_ma4, penalties_saved_ma4, penalties_missed_ma4, yellow_cards_ma4, red_cards_ma4, saves_ma4, bonus_ma4, bps_ma4, clearances_blocks_interceptions_ma4, recoveries_ma4, tackles_ma4, defensive_contribution_ma4, starts_ma4, expected_goals_ma4, expected_assists_ma4, expected_goal_involvements_ma4, expected_goals_conceded_ma4, value_ma4, transfers_balance_ma4, selected_ma4, transfers_in_ma4, transfers_out_ma4, attacking_returns_ma4, finishing_plus_minus_ma4, finishing_ratio_ma4, creation_plus_minus_ma4, creation_ratio_ma4, xgi_plus_minus_ma4, minutes_share_ma4, points_per_90_ma4, tackles_plus_interceptions_ma4, defensive_actions_ma4, total_points_lag1, minutes_lag1, goals_scored_lag1, assists_lag1, clean_sheets_lag1, influence_lag1, creativity_lag1, threat_lag1, ict_index_lag1, goals_conceded_lag1, own_goals_lag1, penalties_saved_lag1, penalties_missed_lag1, yellow_cards_lag1, red_cards_lag1, saves_lag1, bonus_lag1, bps_lag1, clearances_blocks_interceptions_lag1, recoveries_lag1, tackles_lag1, defensive_contribution_lag1, starts_lag1, expected_goals_lag1, expected_assists_lag1, expected_goal_involvements_lag1, expected_goals_conceded_lag1, value_lag1, transfers_balance_lag1, selected_lag1, transfers_in_lag1, transfers_out_lag1, attacking_returns_lag1, finishing_plus_minus_lag1, finishing_ratio_lag1, creation_plus_minus_lag1, creation_ratio_lag1, xgi_plus_minus_lag1, minutes_share_lag1, points_per_90_lag1, tackles_plus_interceptions_lag1, defensive_actions_lag1, team_goals_for_ma4, team_goals_against_ma4, team_goal_diff_ma4, team_clean_sheet_ma4, team_conceded_two_plus_ma4, team_match_points_ma4, opp_team_goals_for_ma4, opp_team_goals_against_ma4, opp_team_goal_diff_ma4, opp_team_clean_sheet_ma4, opp_team_conceded_two_plus_ma4, opp_team_match_points_ma4, was_home, team_strength_overall, team_strength_home, team_strength_away, team_attack_home, team_attack_away, team_def_home, team_def_away, team_form_rating, team_points_table, team_league_position, team_matches_played, team_wins, team_draws, team_losses, opp_strength_overall, opp_strength_home, opp_strength_away, opp_attack_home, opp_attack_away, opp_def_home, opp_def_away, opp_form_rating, opp_points_table, opp_league_position, opp_matches_played, opp_wins, opp_draws, opp_losses, form, points_per_game, value_form, value_season, selected_by_percent, expected_goals_per_90, expected_assists_per_90, expected_goal_involvements_per_90, expected_goals_conceded_per_90, goals_conceded_per_90, saves_per_90, starts_per_90, clean_sheets_per_90, defensive_contribution_per_90, corners_and_indirect_freekicks_order, direct_freekicks_order, penalties_order, has_corners_duty, primary_corners_taker, has_direct_fk_duty, primary_direct_fk_taker, has_penalty_duty, primary_penalty_taker, set_piece_duty_score, player_bias, pos_bias
+2025-10-16 09:26:07,172 [INFO] fplmodel.model - Best classifier[hist_gbdt] params from tuning: {'est__min_samples_leaf': 20, 'est__max_iter': 350, 'est__max_depth': 4, 'est__learning_rate': 0.04, 'est__l2_regularization': 0.1} (score=1.0000)
+2025-10-16 09:26:37,513 [INFO] fplmodel.model - Best regressor[hist_gbdt] params from tuning: {'est__min_samples_leaf': 30, 'est__max_iter': 300, 'est__max_depth': 4, 'est__learning_rate': 0.06, 'est__l2_regularization': 0.0} (score=-0.9817)
+2025-10-16 09:26:37,513 [INFO] fplmodel.model - Candidate Histogram Gradient Boosting | classifier=1.0000 ± 0.0000 ↑ | regressor=0.9817 ± 0.0571 ↓
+2025-10-16 09:27:42,530 [INFO] fplmodel.model - Best classifier[random_forest] params from tuning: {'est__n_estimators': 200, 'est__min_samples_split': 6, 'est__min_samples_leaf': 4, 'est__max_features': 'sqrt', 'est__max_depth': None} (score=1.0000)
+2025-10-16 09:36:42,166 [INFO] fplmodel.model - Best regressor[random_forest] params from tuning: {'est__n_estimators': 600, 'est__min_samples_split': 4, 'est__min_samples_leaf': 1, 'est__max_features': 0.7, 'est__max_depth': 10} (score=-0.9754)
+2025-10-16 09:36:42,167 [INFO] fplmodel.model - Candidate Random Forest | classifier=1.0000 ± 0.0000 ↑ | regressor=0.9754 ± 0.0719 ↓
+2025-10-16 09:37:16,266 [INFO] fplmodel.model - Best classifier[neural_network] params from tuning: {'est__learning_rate_init': 0.003, 'est__hidden_layer_sizes': (128, 64), 'est__beta_1': 0.9, 'est__alpha': 0.0001} (score=0.9965)
+2025-10-16 09:37:45,209 [INFO] fplmodel.model - Best regressor[neural_network] params from tuning: {'est__learning_rate_init': 0.003, 'est__hidden_layer_sizes': (256, 128), 'est__beta_1': 0.95, 'est__alpha': 0.0005} (score=-1.0165)
+2025-10-16 09:37:45,209 [INFO] fplmodel.model - Candidate Neural Network (MLP) | classifier=0.9965 ± 0.0005 ↑ | regressor=1.0165 ± 0.1228 ↓
+2025-10-16 09:37:45,210 [INFO] fplmodel.model - Saved model selection summary to /Users/kyle/Documents/FPL-Prediction/models/model_selection_summary.csv
+2025-10-16 09:37:45,210 [INFO] fplmodel.model - Selected classifier model: Histogram Gradient Boosting (balanced_accuracy=1.0000 ± 0.0000 ↑)
+2025-10-16 09:37:45,210 [INFO] fplmodel.model - Selected regressor model: Random Forest (MAE=0.9754 ± 0.0719 ↓)
+2025-10-16 09:38:37,411 [INFO] fplmodel.model - Classifier (histogram gradient boosting) feature selector dropped 39 column(s): bps_lag1, bps_ma4, creation_plus_minus_lag1, creation_plus_minus_ma4, defensive_actions_lag1, defensive_actions_ma4, expected_goal_involvements_lag1, expected_goal_involvements_ma4, expected_goal_involvements_per_90, minutes_share_lag1, ... (+29 more)
+2025-10-16 09:38:37,411 [INFO] fplmodel.model - Regressor (random forest) feature selector dropped 39 column(s): bps_lag1, bps_ma4, creation_plus_minus_lag1, creation_plus_minus_ma4, defensive_actions_lag1, defensive_actions_ma4, expected_goal_involvements_lag1, expected_goal_involvements_ma4, expected_goal_involvements_per_90, minutes_share_lag1, ... (+29 more)
+2025-10-16 09:38:37,411 [INFO] fplmodel.model - Final model selection: classifier=Histogram Gradient Boosting | regressor=Random Forest
+2025-10-16 09:38:37,533 [INFO] fplmodel - Top feature weights for regressor: total_points_lag1: 0.3793, recoveries_lag1: 0.0878, total_points_ma4: 0.0731, points_per_game: 0.0462, defensive_contribution_lag1: 0.0391, points_per_90_lag1: 0.0295, team_conceded_two_plus_ma4: 0.0218, player_bias: 0.0199, form: 0.0178, bonus_lag1: 0.0151, opp_league_position: 0.0092, team_goals_against_ma4: 0.0087, selected_lag1: 0.0080, influence_lag1: 0.0076, clearances_blocks_interceptions_lag1: 0.0073
+2025-10-16 09:38:37,534 [INFO] fplmodel - Estimator HistGradientBoostingClassifier for classifier does not expose feature_importances_; skipping logging.
+2025-10-16 09:38:37,534 [INFO] fplmodel - Model training complete; fitted 3 candidate pair(s).
+2025-10-16 09:38:37,651 [INFO] fplmodel - Generated ensemble predictions for 743 players using 3 model(s): Histogram Gradient Boosting, Random Forest, Neural Network (MLP)
+2025-10-16 09:38:37,653 [INFO] fplmodel - Applied fixture multipliers; average EP now 1.51
+2025-10-16 09:38:37,654 [INFO] fplmodel - Top 5 expected point predictions (ensemble): Ryan Gravenberch (7.59); Erling Haaland (7.51); Gianluigi Donnarumma (6.23); Benjamin Sesko (5.81); Noah Okafor (5.72)
+2025-10-16 09:38:37,768 [INFO] fplmodel - Residuals computed for 6768 players in GW 7
+2025-10-16 09:38:37,768 [INFO] fplmodel - Selecting best XI from 743 candidates
+2025-10-16 09:38:38,561 [INFO] fplmodel - Selected squad: total cost 94.7M | starting cost 73.1M | bench cost 21.6M
+2025-10-16 09:38:38,562 [INFO] fplmodel - Projected points: XI 63.30 | Captain included 70.88 | Bench 18.99
+2025-10-16 09:38:38,562 [INFO] fplmodel - Captain: Ryan Gravenberch
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Gianluigi Donnarumma (Man City) - 6.23 pts | 5.7M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Jurriën Timber (Arsenal) - 5.54 pts | 5.9M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Sven Botman (Newcastle) - 5.12 pts | 4.9M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Tino Livramento (Newcastle) - 4.92 pts | 5.0M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Marc Guéhi (Crystal Palace) - 4.77 pts | 4.9M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Ryan Gravenberch (Liverpool) - 7.59 pts | 5.7M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Noah Okafor (Leeds) - 5.72 pts | 5.5M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Granit Xhaka (Sunderland) - 5.08 pts | 5.0M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Erling Haaland (Man City) - 7.51 pts | 14.5M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Benjamin Sesko (Man Utd) - 5.81 pts | 7.3M
+2025-10-16 09:38:38,562 [INFO] fplmodel - XI | Ollie Watkins (Aston Villa) - 5.01 pts | 8.7M
+2025-10-16 09:38:38,562 [INFO] fplmodel - Bench 1 | Jaidon Anthony (Burnley) - 4.76 pts
+2025-10-16 09:38:38,562 [INFO] fplmodel - Bench 2 | Lamare Bogarde (Aston Villa) - 4.73 pts
+2025-10-16 09:38:38,562 [INFO] fplmodel - Bench 3 | Jack Grealish (Everton) - 4.60 pts
+2025-10-16 09:38:38,562 [INFO] fplmodel - Bench 4 | Bernd Leno (Fulham) - 4.90 pts
+2025-10-16 09:38:38,568 [INFO] fplmodel - Predictions saved to /Users/kyle/Documents/FPL-Prediction/outputs/predictions_gw8.csv
+2025-10-16 09:38:38,569 [INFO] fplmodel - Starting XI saved to /Users/kyle/Documents/FPL-Prediction/outputs/starting_xi_gw8.csv
+2025-10-16 09:38:38,569 [INFO] fplmodel - Bench saved to /Users/kyle/Documents/FPL-Prediction/outputs/bench_gw8.csv
+2025-10-16 09:38:38,569 [INFO] fplmodel - Best XI JSON saved to /Users/kyle/Documents/FPL-Prediction/outputs/best_xi_gw8.json
+2025-10-16 09:38:38,708 [INFO] fplmodel - Best XI graphic generated at /Users/kyle/Documents/FPL-Prediction/outputs/best_xi_gw8.png
+2025-10-16 09:38:38,717 [INFO] fplmodel - Residuals saved to /Users/kyle/Documents/FPL-Prediction/outputs/residuals_gw7.csv
+2025-10-16 09:38:38,717 [INFO] fplmodel - Pipeline complete for GW 8

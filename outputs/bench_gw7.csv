@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-120,Kevin Schade,Brentford,5,3,7.0,2.970098219965684,0,1,0,1,MCI (H)
-119,Bryan Mbeumo,Man Utd,14,3,8.1,0.7427895317969802,0,1,0,2,SUN (H)
-100,Eli Junior Kroupi,Bournemouth,4,4,4.5,0.3925051843639438,0,1,0,3,FUL (H)
-1,David Raya Martín,Arsenal,1,1,5.7,1.4044524312380124,0,1,0,4,WHU (H)
+430,Erling Haaland,Man City,13,4,14.5,6.114219418905443,0,1,0,1,BRE (A)
+668,Granit Xhaka,Sunderland,17,3,5.0,4.402988851071254,0,1,0,2,MUN (A)
+200,Jaidon Anthony,Burnley,3,3,5.7,4.328359903267015,0,1,0,3,AVL (A)
+366,Alisson Becker,Liverpool,12,1,5.4,2.8361634613174767,0,1,0,4,CHE (A)
