@@ -7,3 +7,4 @@ pulp>=2.8
 matplotlib>=3.8
 xgboost>=1.7
 streamlit>=1.31
+plotly>=5.19
