@@ -204,6 +204,13 @@ The app auto-loads `bootstrap-static.json`, fixtures, and the most recent predic
     2. Squad after applying recommended transfers.
     3. Optimal squad over the same horizon.
 
+### 5.4 Player Comparison Lab
+- Multi-player selector combines upcoming prediction horizons with historic stats to show players in context.
+- Projection summary table highlights total expected points across the chosen gameweek window plus average expected points per GW.
+- Skill radar charts plot `expected_goals_per_90`, `expected_assists_per_90`, `clean_sheets_per_90`, and average expected points so you can see complementary profiles at a glance.
+- Expected vs. actual scatter graphs surface calibration gaps for any finished gameweek.
+- Gameweek timelines track expected points per player across the horizon, alongside a fixture difficulty table that colours upcoming opponents by strength.
+
 #### Notes on FPL ID Usage
 - Find your ID in the FPL website URL (`/entry/<id>/`).
 - Picks must exist for the last finished GW; otherwise the API returns an error surfaced by the app.

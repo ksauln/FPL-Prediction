@@ -19,6 +19,7 @@ from fplmodel.transfer_recommender import (
     aggregate_expected_points,
     recommend_transfers,
 )
+from fplmodel.display_metrics import PlayerComparisonDependencies, render_player_comparison_page
 from fplmodel.utils import get_current_and_last_finished_gw
 
 
@@ -32,6 +33,14 @@ POSITION_SLOTS = (
 
 
 st.set_page_config(page_title="FPL Optimization Toolkit", layout="wide")
+
+TAB_STYLE = """
+<style>
+    button[data-baseweb="tab"] p {
+        font-size: 1.5rem;
+    }
+</style>
+"""
 
 SESSION_USER_TEAM_KEY = "user_team_df"
 SESSION_CAPTAIN_OVERRIDE_KEY = "user_team_captain_override"
@@ -595,7 +604,7 @@ def _build_team_interactively(
     display_df[["starting", "bench", "captain"]] = display_df[
         ["starting", "bench", "captain"]
     ].astype(bool)
-    st.dataframe(display_df, use_container_width=True)
+    st.dataframe(display_df, width="stretch")
 
     return team_df
 
@@ -682,13 +691,13 @@ def _display_team(team: Dict[str, object], enriched: Optional[pd.DataFrame] = No
 
     if not starters.empty:
         st.subheader("Starting XI")
-        st.dataframe(_format_team_display(starters), use_container_width=True)
+        st.dataframe(_format_team_display(starters), width="stretch")
 
     if not bench.empty:
         if "bench_order" in bench.columns:
             bench = bench.sort_values("bench_order")
         st.subheader("Bench")
-        st.dataframe(_format_team_display(bench), use_container_width=True)
+        st.dataframe(_format_team_display(bench), width="stretch")
 
 
 def _optimal_team_page() -> None:
@@ -717,7 +726,7 @@ def _optimal_team_page() -> None:
         st.image(
             str(image_path),
             caption=f"Workflow best XI visual – GW {next_gw}",
-            use_container_width=True,
+            width=1350,
         )
     else:
         st.info("No stored Best XI image found for the latest gameweek.")
@@ -766,7 +775,7 @@ def _team_comparison_page() -> None:
     team_options: List[str] = []
     if isinstance(stored_team_df, pd.DataFrame) and not stored_team_df.empty:
         team_options.append(saved_option)
-    team_options.extend([fpl_option, "Upload CSV", "Build interactively"])
+    team_options.extend([fpl_option, "Build interactively"])
     if "comparison_team_mode" in st.session_state and st.session_state["comparison_team_mode"] not in team_options:
         del st.session_state["comparison_team_mode"]
     team_input_method = st.radio(
@@ -818,37 +827,6 @@ def _team_comparison_page() -> None:
                 return
             cache[cache_key] = user_team_df.copy()
         captain_override = _infer_captain(user_team_df)
-    elif team_input_method == "Upload CSV":
-        st.markdown(
-            "CSV must contain a `player_id` column. Optional columns include "
-            "`full_name`, `starting`, `bench`, and `captain` (use 1 for true, 0 for false)."
-        )
-        team_file = st.file_uploader(
-            "Your squad CSV", type="csv", key="comparison_team"
-        )
-        if team_file is None:
-            st.info("Upload your squad CSV or switch to the interactive builder.")
-            return
-        try:
-            user_team_df = _load_user_team(team_file)
-        except Exception as exc:  # noqa: BLE001
-            st.error(str(exc))
-            return
-
-        if "captain" not in user_team_df.columns or user_team_df["captain"].sum() == 0:
-            player_lookup = user_team_df.set_index("player_id")
-            options: List[str] = ["Use file data"]
-            options.extend(
-                [
-                    f"{int(pid)} - {player_lookup.loc[pid]['full_name']}"
-                    if "full_name" in player_lookup.columns
-                    else str(int(pid))
-                    for pid in user_team_df["player_id"].tolist()
-                ]
-            )
-            selection = st.selectbox("Captain override", options)
-            if selection != "Use file data":
-                captain_override = int(selection.split(" - ")[0])
     else:
         st.markdown(
             "Use the search boxes below to select each position in your 15-player squad."
@@ -953,6 +931,18 @@ def _team_comparison_page() -> None:
         "Expected goals/assists/clean sheets are per 90 values sourced from the latest FPL bootstrap data."
     )
 
+def _player_comparison_page() -> None:
+    deps = PlayerComparisonDependencies(
+        load_predictions_for_horizon=_load_predictions_for_horizon,
+        discover_prediction_files=_discover_prediction_files,
+        last_finished_gameweek=_last_finished_gameweek,
+        load_predictions=_load_predictions,
+        load_actual_points_for_gw=_load_actual_points_for_gw,
+        load_bootstrap_elements_df=_load_bootstrap_elements_df,
+        load_fixtures_df=_load_fixtures_df,
+        load_bootstrap_teams_df=_load_bootstrap_teams_df,
+    )
+    render_player_comparison_page(POSITION_LABELS, deps)
 
 def _transfer_recommender_page() -> None:
     st.header("Transfer Recommender")
@@ -1014,7 +1004,7 @@ def _transfer_recommender_page() -> None:
     team_input_options: List[str] = []
     if isinstance(stored_team_df, pd.DataFrame) and not stored_team_df.empty:
         team_input_options.append(stored_team_option)
-    team_input_options.extend([fpl_team_option, "Upload CSV", "Build interactively"])
+    team_input_options.extend([fpl_team_option, "Build interactively"])
     if "transfer_team_mode" in st.session_state and st.session_state["transfer_team_mode"] not in team_input_options:
         del st.session_state["transfer_team_mode"]
 
@@ -1064,21 +1054,6 @@ def _transfer_recommender_page() -> None:
                 st.error(str(exc))
                 return
             cache[cache_key] = user_team_df.copy()
-        user_team_df = _enrich_user_team(
-            user_team_df, base_predictions, gameweek=selected_gws[0]
-        )
-    elif team_input_method == "Upload CSV":
-        team_file = st.file_uploader(
-            "Your current squad CSV", type="csv", key="transfer_team"
-        )
-        if team_file is None:
-            st.info("Upload your squad CSV or switch to the interactive builder.")
-            return
-        try:
-            user_team_df = _load_user_team(team_file)
-        except Exception as exc:  # noqa: BLE001
-            st.error(str(exc))
-            return
         user_team_df = _enrich_user_team(
             user_team_df, base_predictions, gameweek=selected_gws[0]
         )
@@ -1157,7 +1132,7 @@ def _transfer_recommender_page() -> None:
         )
         subset = subset.sort_values("Total", ascending=False).reset_index(drop=True)
         st.subheader(title)
-        st.dataframe(subset, use_container_width=True)
+        st.dataframe(subset, width="stretch")
 
     user_player_ids = [int(pid) for pid in user_team_df["player_id"].tolist()]
     post_transfer_ids = [int(pid) for pid in post_transfer_team["player_id"].tolist()]
@@ -1186,13 +1161,18 @@ PAGES = {
     "Optimal Team": _optimal_team_page,
     "Team Comparison": _team_comparison_page,
     "Transfer Recommender": _transfer_recommender_page,
+    "Player Comparison Lab": _player_comparison_page,
 }
 
 
 def main() -> None:
+    st.markdown(TAB_STYLE, unsafe_allow_html=True)
     st.title("FPL Optimization Toolkit")
-    choice = st.sidebar.radio("Navigation", list(PAGES))
-    PAGES[choice]()
+    tab_labels = list(PAGES)
+    tabs = st.tabs(tab_labels)
+    for tab, (label, render_page) in zip(tabs, PAGES.items()):
+        with tab:
+            render_page()
 
 
 if __name__ == "__main__":
