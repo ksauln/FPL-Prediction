@@ -15,11 +15,15 @@ CACHE_DIR = PROJECT_ROOT / "cache"
 EXTERNAL_DATA_DIR = DATA_DIR / "external"
 EXTERNAL_HISTORY_REPO = EXTERNAL_DATA_DIR / "Fantasy-Premier-League"
 EXTERNAL_HISTORY_DIR = EXTERNAL_HISTORY_REPO / "data"
+FBREF_DATA_DIR = EXTERNAL_DATA_DIR / "fbref"
 
 # --- API Endpoints (official FPL)
 FPL_BOOTSTRAP = "https://fantasy.premierleague.com/api/bootstrap-static/"
 FPL_FIXTURES_ALL = "https://fantasy.premierleague.com/api/fixtures/"
 FPL_ELEMENT_SUMMARY = "https://fantasy.premierleague.com/api/element-summary/{player_id}/"
+
+# --- External APIs
+FBREF_API_BASE_URL = "https://fbrapi.com/api"
 
 # --- General
 RANDOM_SEED = 42

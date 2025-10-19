@@ -9,6 +9,7 @@ __pycache__/
 
 # Environment / secret files
 .env
+secrets.toml
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
@@ -35,3 +36,6 @@ models/*.pkl
 # IDE metadata
 .vscode/
 .idea/
+
+# Local archives
+fpl_updates.zip
