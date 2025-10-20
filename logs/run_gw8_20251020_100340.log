@@ -1,0 +1,10 @@
+2025-10-20 10:03:40,007 [INFO] fplmodel - Logging initialised. Writing to /Users/kyle/Documents/FPL-Prediction/logs/run_20251020_100340.log
+2025-10-20 10:03:40,007 [INFO] fplmodel - Starting pipeline run (force_refetch=True)
+2025-10-20 10:03:40,007 [INFO] fplmodel - Fetching bootstrap static data...
+2025-10-20 10:03:40,331 [INFO] fplmodel - Fetching fixtures data...
+2025-10-20 10:03:40,501 [INFO] fplmodel - Loaded normalised frames: 745 elements, 20 teams, 38 events
+2025-10-20 10:03:40,502 [INFO] fplmodel - Gameweek override applied -> next_gw=8 | last_finished_gw=7
+2025-10-20 10:03:40,502 [INFO] fplmodel - Next gameweek: 8 | Last finished gameweek: 7
+2025-10-20 10:03:40,502 [INFO] fplmodel - Renaming log file to highlight gameweek 8
+2025-10-20 10:03:40,502 [INFO] fplmodel - Log file renamed to /Users/kyle/Documents/FPL-Prediction/logs/run_gw8_20251020_100340.log
+2025-10-20 10:03:40,502 [INFO] fplmodel - Fetching player histories for 745 players (force_refetch=True)

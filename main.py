@@ -3,6 +3,7 @@ import argparse
 from collections import defaultdict
 import json
 import os
+import time
 import pandas as pd
 
 from fplmodel.config import (
@@ -181,16 +182,35 @@ def run_pipeline(
                     keep="first",
                 )
                 logger.info("Combined history dataset now has %d rows", len(histories_df))
+                if not histories_df.empty:
+                    season_series = (
+                        histories_df["season_name"].dropna()
+                        if "season_name" in histories_df.columns
+                        else pd.Series(dtype="object")
+                    )
+                    logger.info(
+                        "History coverage: %d players across %d seasons (latest season=%s)",
+                        histories_df["player_id"].nunique(),
+                        season_series.nunique(),
+                        season_series.iloc[-1] if not season_series.empty else "n/a",
+                    )
             else:
                 logger.info("No external history rows loaded.")
 
         # 4) Build training and next-gw prediction frames
         state = ModelState()
+        feature_start = time.perf_counter()
+        logger.info(
+            "Beginning feature frame construction with %d history rows",
+            len(histories_df),
+        )
         X_train, y_train, X_pred = build_training_and_pred_frames(
             elements_df, teams_df, histories_df, next_gw, last_finished_gw, state
         )
+        feature_elapsed = time.perf_counter() - feature_start
         logger.info(
-            "Prepared features: X_train=%s, y_train=%d, X_pred=%s",
+            "Prepared features in %.2fs: X_train=%s, y_train=%d, X_pred=%s",
+            feature_elapsed,
             tuple(X_train.shape),
             len(y_train),
             tuple(X_pred.shape),

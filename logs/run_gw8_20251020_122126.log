@@ -1,0 +1,48 @@
+2025-10-20 12:21:26,074 [INFO] fplmodel - Logging initialised. Writing to /Users/kyle/Documents/FPL-Prediction/logs/run_20251020_122126.log
+2025-10-20 12:21:26,074 [INFO] fplmodel - Starting pipeline run (force_refetch=True)
+2025-10-20 12:21:26,074 [INFO] fplmodel - Fetching bootstrap static data...
+2025-10-20 12:21:26,074 [INFO] fplmodel.data_pull - Fetching bootstrap static data from https://fantasy.premierleague.com/api/bootstrap-static/ (force=True)
+2025-10-20 12:21:26,485 [INFO] fplmodel.data_pull - Saved bootstrap static payload to /Users/kyle/Documents/FPL-Prediction/data/raw/bootstrap-static.json
+2025-10-20 12:21:26,485 [INFO] fplmodel - Fetching fixtures data...
+2025-10-20 12:21:26,486 [INFO] fplmodel.data_pull - Fetching fixtures data from https://fantasy.premierleague.com/api/fixtures/ (force=True)
+2025-10-20 12:21:26,584 [INFO] fplmodel.data_pull - Saved fixtures payload to /Users/kyle/Documents/FPL-Prediction/data/raw/fixtures-all.json
+2025-10-20 12:21:26,594 [INFO] fplmodel - Loaded normalised frames: 745 elements, 20 teams, 38 events
+2025-10-20 12:21:26,595 [INFO] fplmodel - Gameweek override applied -> next_gw=8 | last_finished_gw=7
+2025-10-20 12:21:26,595 [INFO] fplmodel - Next gameweek: 8 | Last finished gameweek: 7
+2025-10-20 12:21:26,595 [INFO] fplmodel - Renaming log file to highlight gameweek 8
+2025-10-20 12:21:26,595 [INFO] fplmodel - Log file renamed to /Users/kyle/Documents/FPL-Prediction/logs/run_gw8_20251020_122126.log
+2025-10-20 12:21:26,595 [INFO] fplmodel - Fetching player histories for 745 players (force_refetch=True)
+2025-10-20 12:21:26,595 [INFO] fplmodel.data_pull - Starting player history fetch for 745 players (force=True, seasons_back=5)
+2025-10-20 12:21:36,203 [INFO] fplmodel.data_pull - Fetched player history 74/745 (player_id=702)
+2025-10-20 12:21:44,888 [INFO] fplmodel.data_pull - Fetched player history 148/745 (player_id=96)
+2025-10-20 12:21:55,697 [INFO] fplmodel.data_pull - Fetched player history 222/745 (player_id=165)
+2025-10-20 12:22:05,445 [INFO] fplmodel.data_pull - Fetched player history 296/745 (player_id=275)
+2025-10-20 12:22:12,553 [INFO] fplmodel.data_pull - Fetched player history 370/745 (player_id=337)
+2025-10-20 12:22:18,747 [INFO] fplmodel.data_pull - Fetched player history 444/745 (player_id=692)
+2025-10-20 12:22:25,102 [INFO] fplmodel.data_pull - Fetched player history 518/745 (player_id=733)
+2025-10-20 12:22:31,453 [INFO] fplmodel.data_pull - Fetched player history 592/745 (player_id=528)
+2025-10-20 12:22:37,495 [INFO] fplmodel.data_pull - Fetched player history 666/745 (player_id=594)
+2025-10-20 12:22:43,878 [INFO] fplmodel.data_pull - Fetched player history 740/745 (player_id=658)
+2025-10-20 12:22:44,305 [INFO] fplmodel.data_pull - Fetched player history 745/745 (player_id=720)
+2025-10-20 12:22:44,305 [INFO] fplmodel.data_pull - Completed player history fetch cycle for 745 players
+2025-10-20 12:22:44,306 [INFO] fplmodel - Loading 745 player history files from /Users/kyle/Documents/FPL-Prediction/data/raw
+2025-10-20 12:22:44,736 [INFO] fplmodel - Built player histories dataframe with 34908 rows
+2025-10-20 12:22:45,504 [INFO] fplmodel - Loaded 130884 external history rows for seasons 2020-21, 2021-22, 2022-23, 2023-24, 2024-25
+2025-10-20 12:22:45,581 [INFO] fplmodel - Combined history dataset now has 162884 rows
+2025-10-20 12:22:45,591 [INFO] fplmodel - History coverage: 745 players across 6 seasons (latest season=2024-25)
+2025-10-20 12:22:45,591 [INFO] fplmodel - Beginning feature frame construction with 162884 history rows
+2025-10-20 12:22:46,594 [INFO] fplmodel.fbref_data - Fetching FBRef match logs for 509 players across up to 6 seasons
+2025-10-20 12:22:47,255 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 1/4); retrying after 6.5s...
+2025-10-20 12:22:54,037 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 2/4); retrying after 6.5s...
+2025-10-20 12:23:00,793 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 3/4); retrying after 6.5s...
+2025-10-20 12:23:07,577 [WARNING] fplmodel.fbref_data - FBRef match stats unavailable for player 972aeb2a season 2020-2021: 500 Server Error: Internal Server Error for url: https://fbrapi.com/player-match-stats/?league_id=9&player_id=972aeb2a&season_id=2020-2021
+2025-10-20 12:23:07,957 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 1/4); retrying after 6.5s...
+2025-10-20 12:23:14,778 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 2/4); retrying after 6.5s...
+2025-10-20 12:23:21,570 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 3/4); retrying after 6.5s...
+2025-10-20 12:23:28,341 [WARNING] fplmodel.fbref_data - FBRef match stats unavailable for player 972aeb2a season 2021-2022: 500 Server Error: Internal Server Error for url: https://fbrapi.com/player-match-stats/?league_id=9&player_id=972aeb2a&season_id=2021-2022
+2025-10-20 12:23:35,552 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 1/4); retrying after 6.5s...
+2025-10-20 12:23:42,452 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 2/4); retrying after 6.5s...
+2025-10-20 12:23:49,261 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 3/4); retrying after 6.5s...
+2025-10-20 12:23:56,039 [WARNING] fplmodel.fbref_data - FBRef match stats unavailable for player 972aeb2a season 2022-2023: 500 Server Error: Internal Server Error for url: https://fbrapi.com/player-match-stats/?league_id=9&player_id=972aeb2a&season_id=2022-2023
+2025-10-20 12:23:56,424 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 1/4); retrying after 6.5s...
+2025-10-20 12:24:03,169 [WARNING] fplmodel.fbref_data - FBRef request player-match-stats returned HTTP 500 (attempt 2/4); retrying after 6.5s...

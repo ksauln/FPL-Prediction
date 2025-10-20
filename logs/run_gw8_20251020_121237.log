@@ -1,0 +1,18 @@
+2025-10-20 12:12:37,141 [INFO] fplmodel - Logging initialised. Writing to /Users/kyle/Documents/FPL-Prediction/logs/run_20251020_121237.log
+2025-10-20 12:12:37,141 [INFO] fplmodel - Starting pipeline run (force_refetch=True)
+2025-10-20 12:12:37,141 [INFO] fplmodel - Fetching bootstrap static data...
+2025-10-20 12:12:37,141 [INFO] fplmodel.data_pull - Fetching bootstrap static data from https://fantasy.premierleague.com/api/bootstrap-static/ (force=True)
+2025-10-20 12:12:37,415 [INFO] fplmodel.data_pull - Saved bootstrap static payload to /Users/kyle/Documents/FPL-Prediction/data/raw/bootstrap-static.json
+2025-10-20 12:12:37,415 [INFO] fplmodel - Fetching fixtures data...
+2025-10-20 12:12:37,416 [INFO] fplmodel.data_pull - Fetching fixtures data from https://fantasy.premierleague.com/api/fixtures/ (force=True)
+2025-10-20 12:12:37,519 [INFO] fplmodel.data_pull - Saved fixtures payload to /Users/kyle/Documents/FPL-Prediction/data/raw/fixtures-all.json
+2025-10-20 12:12:37,529 [INFO] fplmodel - Loaded normalised frames: 745 elements, 20 teams, 38 events
+2025-10-20 12:12:37,530 [INFO] fplmodel - Gameweek override applied -> next_gw=8 | last_finished_gw=7
+2025-10-20 12:12:37,530 [INFO] fplmodel - Next gameweek: 8 | Last finished gameweek: 7
+2025-10-20 12:12:37,530 [INFO] fplmodel - Renaming log file to highlight gameweek 8
+2025-10-20 12:12:37,530 [INFO] fplmodel - Log file renamed to /Users/kyle/Documents/FPL-Prediction/logs/run_gw8_20251020_121237.log
+2025-10-20 12:12:37,530 [INFO] fplmodel - Fetching player histories for 745 players (force_refetch=True)
+2025-10-20 12:12:37,530 [INFO] fplmodel.data_pull - Starting player history fetch for 745 players (force=True, seasons_back=5)
+2025-10-20 12:12:47,690 [INFO] fplmodel.data_pull - Fetched player history 74/745 (player_id=702)
+2025-10-20 12:13:06,460 [WARNING] fplmodel.data_pull - Network error fetching https://fantasy.premierleague.com/api/element-summary/183/ (HTTPSConnectionPool(host='fantasy.premierleague.com', port=443): Read timed out. (read timeout=30)) attempt 1/4; retrying...
+2025-10-20 12:13:25,820 [WARNING] fplmodel.data_pull - Network error fetching https://fantasy.premierleague.com/api/element-summary/183/ (HTTPSConnectionPool(host='fantasy.premierleague.com', port=443): Read timed out. (read timeout=30)) attempt 2/4; retrying...

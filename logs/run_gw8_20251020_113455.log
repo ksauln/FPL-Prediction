@@ -1,0 +1,31 @@
+2025-10-20 11:34:55,381 [INFO] fplmodel - Logging initialised. Writing to /Users/kyle/Documents/FPL-Prediction/logs/run_20251020_113455.log
+2025-10-20 11:34:55,381 [INFO] fplmodel - Starting pipeline run (force_refetch=True)
+2025-10-20 11:34:55,381 [INFO] fplmodel - Fetching bootstrap static data...
+2025-10-20 11:34:55,381 [INFO] fplmodel.data_pull - Fetching bootstrap static data from https://fantasy.premierleague.com/api/bootstrap-static/ (force=True)
+2025-10-20 11:34:55,723 [INFO] fplmodel.data_pull - Saved bootstrap static payload to /Users/kyle/Documents/FPL-Prediction/data/raw/bootstrap-static.json
+2025-10-20 11:34:55,723 [INFO] fplmodel - Fetching fixtures data...
+2025-10-20 11:34:55,723 [INFO] fplmodel.data_pull - Fetching fixtures data from https://fantasy.premierleague.com/api/fixtures/ (force=True)
+2025-10-20 11:34:55,826 [INFO] fplmodel.data_pull - Saved fixtures payload to /Users/kyle/Documents/FPL-Prediction/data/raw/fixtures-all.json
+2025-10-20 11:34:55,836 [INFO] fplmodel - Loaded normalised frames: 745 elements, 20 teams, 38 events
+2025-10-20 11:34:55,837 [INFO] fplmodel - Gameweek override applied -> next_gw=8 | last_finished_gw=7
+2025-10-20 11:34:55,837 [INFO] fplmodel - Next gameweek: 8 | Last finished gameweek: 7
+2025-10-20 11:34:55,837 [INFO] fplmodel - Renaming log file to highlight gameweek 8
+2025-10-20 11:34:55,837 [INFO] fplmodel - Log file renamed to /Users/kyle/Documents/FPL-Prediction/logs/run_gw8_20251020_113455.log
+2025-10-20 11:34:55,837 [INFO] fplmodel - Fetching player histories for 745 players (force_refetch=True)
+2025-10-20 11:34:55,837 [INFO] fplmodel.data_pull - Starting player history fetch for 745 players (force=True, seasons_back=5)
+2025-10-20 11:35:02,740 [INFO] fplmodel.data_pull - Fetched player history 74/745 (player_id=702)
+2025-10-20 11:35:10,098 [INFO] fplmodel.data_pull - Fetched player history 148/745 (player_id=96)
+2025-10-20 11:35:16,602 [INFO] fplmodel.data_pull - Fetched player history 222/745 (player_id=165)
+2025-10-20 11:35:23,208 [INFO] fplmodel.data_pull - Fetched player history 296/745 (player_id=275)
+2025-10-20 11:35:30,755 [INFO] fplmodel.data_pull - Fetched player history 370/745 (player_id=337)
+2025-10-20 11:35:38,822 [INFO] fplmodel.data_pull - Fetched player history 444/745 (player_id=692)
+2025-10-20 11:35:47,647 [INFO] fplmodel.data_pull - Fetched player history 518/745 (player_id=733)
+2025-10-20 11:35:56,237 [INFO] fplmodel.data_pull - Fetched player history 592/745 (player_id=528)
+2025-10-20 11:36:05,487 [INFO] fplmodel.data_pull - Fetched player history 666/745 (player_id=594)
+2025-10-20 11:36:17,825 [INFO] fplmodel.data_pull - Fetched player history 740/745 (player_id=658)
+2025-10-20 11:36:18,606 [INFO] fplmodel.data_pull - Fetched player history 745/745 (player_id=720)
+2025-10-20 11:36:18,606 [INFO] fplmodel.data_pull - Completed player history fetch cycle for 745 players
+2025-10-20 11:36:18,607 [INFO] fplmodel - Loading 745 player history files from /Users/kyle/Documents/FPL-Prediction/data/raw
+2025-10-20 11:36:19,044 [INFO] fplmodel - Built player histories dataframe with 34908 rows
+2025-10-20 11:36:19,885 [INFO] fplmodel - Loaded 130884 external history rows for seasons 2020-21, 2021-22, 2022-23, 2023-24, 2024-25
+2025-10-20 11:36:19,957 [INFO] fplmodel - Combined history dataset now has 162884 rows

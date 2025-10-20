@@ -5,6 +5,13 @@ import pandas as pd
 from typing import Dict, Any, Tuple, Sequence, Iterable
 
 from .config import ROLLING_WINDOWS, MIN_MATCHES_FOR_FEATURES
+from .fbref_data import (
+    build_fbref_player_feature_matrix,
+    canonicalise_player_name,
+    collect_player_match_stats,
+    compute_canonical_names,
+    normalise_season_code,
+)
 from .state import ModelState
 
 
@@ -14,10 +21,28 @@ SET_PIECE_ORDER_MAP = {
     "penalties_order": "penalty",
 }
 
+FBREF_DEFENSIVE_COMPONENTS = (
+    "fbref_match_defense_clearances",
+    "fbref_match_summary_blocks",
+    "fbref_match_summary_int",
+    "fbref_match_summary_tkl",
+    "fbref_match_misc_ball_recov",
+)
+
 
 def _prepare_player_static_features(elements_df: pd.DataFrame) -> pd.DataFrame:
     """Enhance elements dataframe with numeric form metrics and set-piece flags."""
     df = elements_df.copy()
+
+    name_cols = [
+        col
+        for col in ("full_name", "web_name", "first_name", "second_name")
+        if col in df.columns
+    ]
+    if name_cols:
+        compute_canonical_names(df, name_cols, target="canonical_name")
+        df["canonical_name"] = df["canonical_name"].replace("", pd.NA)
+
     numeric_cols = [
         "form",
         "points_per_game",
@@ -72,6 +97,69 @@ def _safe_numeric(series: pd.Series) -> pd.Series:
 def _safe_ratio(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
     ratio = numerator / denominator.replace({0: np.nan})
     return ratio.replace([np.inf, -np.inf], np.nan)
+
+
+def _season_start_year(series: pd.Series) -> pd.Series:
+    """Return the starting year (YYYY) extracted from FPL season codes."""
+
+    if series.empty:
+        return pd.Series(dtype=float)
+
+    normalised = series.fillna("").astype(str).map(normalise_season_code)
+    start_year = normalised.str.split("-", n=1).str[0]
+    return pd.to_numeric(start_year, errors="coerce")
+
+
+def _numeric_series(df: pd.DataFrame, column: str) -> Tuple[pd.Series, bool]:
+    """Return a numeric series for ``column`` and flag whether it existed."""
+
+    if column not in df.columns:
+        return pd.Series(0.0, index=df.index, dtype=float), False
+
+    series = pd.to_numeric(df[column], errors="coerce").fillna(0.0)
+    return series, True
+
+
+def _compute_fbref_defensive_contribution(df: pd.DataFrame) -> pd.Series:
+    """Sum FBRef defensive components into a defensive contribution count."""
+
+    clearances, _ = _numeric_series(df, "fbref_match_defense_clearances")
+    blocks, _ = _numeric_series(df, "fbref_match_summary_blocks")
+    interceptions, _ = _numeric_series(df, "fbref_match_summary_int")
+    tackles, _ = _numeric_series(df, "fbref_match_summary_tkl")
+    recoveries, _ = _numeric_series(df, "fbref_match_misc_ball_recov")
+
+    cbi = clearances + blocks + interceptions
+    return (cbi + tackles + recoveries).fillna(0.0)
+
+
+def _apply_historic_defensive_contribution(df: pd.DataFrame) -> pd.DataFrame:
+    """Populate defensive contribution for seasons prior to 2025-26."""
+
+    if df.empty or "season_name" not in df.columns:
+        return df
+
+    if not any(col in df.columns for col in FBREF_DEFENSIVE_COMPONENTS):
+        return df
+
+    start_year = _season_start_year(df["season_name"])
+    historic_mask = start_year < 2025
+    if not historic_mask.any():
+        return df
+
+    fbref_contribution = _compute_fbref_defensive_contribution(df)
+
+    if "defensive_contribution" not in df.columns:
+        df["defensive_contribution"] = 0.0
+
+    df.loc[historic_mask, "defensive_contribution"] = fbref_contribution.loc[
+        historic_mask
+    ]
+    df["defensive_contribution"] = pd.to_numeric(
+        df["defensive_contribution"], errors="coerce"
+    ).fillna(0.0)
+
+    return df
 
 
 def _rolling_mean(group, window: int) -> pd.Series:
@@ -304,7 +392,121 @@ def build_training_and_pred_frames(
     Returns:
       X_train (DataFrame), y_train (Series of total_points), X_pred (DataFrame for next_gw)
     """
+    histories_df = histories_df.copy()
+    if "kickoff_time" in histories_df.columns:
+        kickoff_times = pd.to_datetime(histories_df["kickoff_time"], errors="coerce")
+        histories_df["match_date"] = kickoff_times.dt.strftime("%Y-%m-%d")
+    else:
+        histories_df["match_date"] = pd.NA
+
+    if "was_home" in histories_df.columns:
+        histories_df["home_away"] = histories_df["was_home"].astype(bool).map(
+            {True: "home", False: "away"}
+        )
+    else:
+        histories_df["home_away"] = pd.NA
+
     elements_enhanced = _prepare_player_static_features(elements_df)
+
+    fbref_feature_frame = pd.DataFrame()
+    fbref_match_frame = pd.DataFrame()
+    if "season_name" in histories_df.columns:
+        history_seasons = [
+            str(season)
+            for season in histories_df["season_name"].dropna().unique()
+            if str(season).strip() and str(season).strip().lower() not in {"nan", "none"}
+        ]
+        if history_seasons:
+            try:
+                fbref_feature_frame = build_fbref_player_feature_matrix(
+                    elements_df, seasons=history_seasons
+                )
+            except Exception as exc:
+                logging.getLogger(__name__).warning(
+                    "FBRef feature build failed: %s", exc
+                )
+                fbref_feature_frame = pd.DataFrame()
+
+            if not fbref_feature_frame.empty and "fbref_player_id" in fbref_feature_frame.columns:
+                fbref_id_map = (
+                    fbref_feature_frame.dropna(subset=["fbref_player_id"])  # type: ignore[arg-type]
+                    .sort_values(["player_id", "season_name"])
+                    .groupby("player_id")["fbref_player_id"]
+                    .first()
+                    .to_dict()
+                )
+
+                canonical_map = {}
+                if "canonical_name" in elements_enhanced.columns:
+                    canonical_map = (
+                        elements_enhanced.dropna(subset=["canonical_name"])  # type: ignore[arg-type]
+                        .drop_duplicates(subset=["player_id"])
+                        .set_index("player_id")["canonical_name"]
+                        .to_dict()
+                    )
+
+                season_lookup = histories_df.dropna(subset=["season_name"])
+                if not season_lookup.empty:
+                    season_lookup = season_lookup.assign(
+                        season_name=season_lookup["season_name"].astype(str)
+                    )
+                    season_lookup = season_lookup[
+                        season_lookup["season_name"].str.strip().ne("")
+                    ]
+                    player_seasons = (
+                        season_lookup.groupby("player_id")["season_name"]
+                        .apply(
+                            lambda values: sorted(
+                                dict.fromkeys(
+                                    normalise_season_code(value)
+                                    for value in values
+                                    if isinstance(value, str)
+                                    and value.strip()
+                                    and value.strip().lower() not in {"nan", "none"}
+                                )
+                            )
+                        )
+                        .to_dict()
+                    )
+                else:
+                    player_seasons = {}
+
+                try:
+                    fbref_match_frame = collect_player_match_stats(
+                        player_id_map=fbref_id_map,
+                        player_seasons=player_seasons,
+                        canonical_name_map=canonical_map,
+                    )
+                except Exception as exc:
+                    logging.getLogger(__name__).warning(
+                        "FBRef match stats build failed: %s", exc
+                    )
+                    fbref_match_frame = pd.DataFrame()
+
+    if not fbref_match_frame.empty:
+        team_name_map = {}
+        if {"id", "name"}.issubset(teams_df.columns):
+            team_name_map = {
+                canonicalise_player_name(name): team_id
+                for team_id, name in teams_df[["id", "name"]].dropna().itertuples(index=False)
+            }
+        if team_name_map:
+            fbref_match_frame["fbref_team_id"] = fbref_match_frame["fbref_team_canonical"].map(
+                team_name_map
+            )
+            fbref_match_frame["fbref_opponent_team_id"] = fbref_match_frame[
+                "fbref_opponent_canonical"
+            ].map(team_name_map)
+        else:
+            fbref_match_frame["fbref_team_id"] = pd.NA
+            fbref_match_frame["fbref_opponent_team_id"] = pd.NA
+
+        fbref_match_frame["home_away"] = fbref_match_frame["fbref_home_away"]
+        fbref_match_frame = fbref_match_frame.drop(columns=["canonical_name"], errors="ignore")
+        fbref_match_frame = fbref_match_frame.dropna(subset=["match_date"])
+        fbref_match_frame = fbref_match_frame.drop_duplicates(
+            subset=["player_id", "season_name", "match_date", "home_away"]
+        )
 
     team_labels = teams_df[["team_id", "name"]].rename(columns={"name": "team_name"})
     elements_with_team = elements_enhanced.merge(team_labels, on="team_id", how="left")
@@ -314,6 +516,7 @@ def build_training_and_pred_frames(
         "player_id",
         "team_id",
         "element_type",
+        "canonical_name",
         "form",
         "points_per_game",
         "value_form",
@@ -347,6 +550,15 @@ def build_training_and_pred_frames(
         suffixes=("", "_current"),
     )
 
+    if not fbref_match_frame.empty:
+        base = base.merge(
+            fbref_match_frame,
+            on=["player_id", "season_name", "match_date", "home_away"],
+            how="left",
+        )
+
+    base = _apply_historic_defensive_contribution(base)
+
     # Prefer historical team ids when available, but fall back to current squad assignment.
     if "team" not in base.columns and "team_current" in base.columns:
         base = base.rename(columns={"team_current": "team"})
@@ -354,6 +566,12 @@ def build_training_and_pred_frames(
         base["team"] = base["team"].fillna(base["team_current"])
         base = base.drop(columns=["team_current"])
     base = _rolling_feats(base, windows=tuple(ROLLING_WINDOWS))
+    if not fbref_feature_frame.empty:
+        base = base.merge(
+            fbref_feature_frame,
+            on=["player_id", "season_name"],
+            how="left",
+        )
     base = _merge_team_strength(base, teams_df)
 
     # Include bias features
@@ -423,7 +641,18 @@ def build_training_and_pred_frames(
         "pos_bias",
     ]
     manual_feature_cols = [c for c in manual_features if c in base.columns]
+    excluded_fbref_feature_cols = {"fbref_team_id", "fbref_opponent_team_id"}
+    fbref_feature_cols = sorted(
+        c
+        for c in base.columns
+        if c.startswith("fbref_")
+        and pd.api.types.is_numeric_dtype(base[c])
+        and c not in excluded_fbref_feature_cols
+    )
     feature_cols = rolling_feature_cols + manual_feature_cols
+    for col in fbref_feature_cols:
+        if col not in feature_cols:
+            feature_cols.append(col)
 
     # TRAIN: rows with enough history and gw <= last_finished_gw
     train_rows = base[(base["enough_prev"]) & (base["round"] <= last_finished_gw)].copy()

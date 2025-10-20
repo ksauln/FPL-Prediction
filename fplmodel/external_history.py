@@ -5,18 +5,20 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 import pandas as pd
+import numpy as np
 
 from .config import EXTERNAL_HISTORY_DIR
 
 logger = logging.getLogger(__name__)
 
 
+STARTS_MINUTES_THRESHOLD = 55
+
+
 HISTORY_COLS_DEFAULTS = {
-    "clearances_blocks_interceptions": 0.0,
-    "recoveries": 0.0,
-    "tackles": 0.0,
-    "defensive_contribution": 0.0,
-    "starts": 0.0,
+    "clearances_blocks_interceptions": np.nan,
+    "recoveries": np.nan,
+    "tackles": np.nan,
 }
 
 
@@ -45,6 +47,7 @@ def _normalise_frame(df: pd.DataFrame, season: str, team_map: dict[str, int]) ->
         "element": "player_id",
     }
     df = df.rename(columns=rename_map)
+    original_columns = set(df.columns)
 
     df["season_name"] = season
 
@@ -80,6 +83,10 @@ def _normalise_frame(df: pd.DataFrame, season: str, team_map: dict[str, int]) ->
         "transfers_in",
         "transfers_out",
         "starts",
+        "clearances_blocks_interceptions",
+        "recoveries",
+        "tackles",
+        "defensive_contribution",
     ]
     for col in numeric_cols:
         if col in df.columns:
@@ -99,10 +106,29 @@ def _normalise_frame(df: pd.DataFrame, season: str, team_map: dict[str, int]) ->
         mapped = df["team"].astype(str).map(team_map)
         df["team"] = pd.to_numeric(mapped, errors="coerce")
 
-    # Ensure defaults for missing stats
+    # Derive starts when not provided. Players exceeding 55 minutes are assumed starters.
+    if "starts" not in df.columns:
+        if "minutes" in df.columns:
+            df["starts"] = (df["minutes"].fillna(0) >= STARTS_MINUTES_THRESHOLD).astype(int)
+        else:
+            df["starts"] = np.nan
+
+    # Ensure defensive counting stats exist even if the external source omits them.
+    defensive_cols = ["clearances_blocks_interceptions", "recoveries", "tackles"]
+    source_has_defensive_stats = any(col in original_columns for col in defensive_cols)
     for col, default in HISTORY_COLS_DEFAULTS.items():
         if col not in df.columns:
             df[col] = default
+
+    if "defensive_contribution" not in df.columns:
+        if source_has_defensive_stats:
+            df["defensive_contribution"] = (
+                df["clearances_blocks_interceptions"].fillna(0)
+                + df["recoveries"].fillna(0)
+                + df["tackles"].fillna(0)
+            )
+        else:
+            df["defensive_contribution"] = np.nan
 
     expected_columns = set(numeric_cols).union(
         {
