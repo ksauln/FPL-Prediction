@@ -26,7 +26,7 @@ from fplmodel.model import train_models, predict_expected_points
 from fplmodel.evaluation import evaluate_last_finished_gw_and_update_state
 from fplmodel.state import ModelState
 from fplmodel.utils import get_current_and_last_finished_gw
-from fplmodel.logging_utils import configure_run_logger, update_log_filename_for_gameweek
+from fplmodel.logging_utils import configure_run_logger, update_log_filename_for_gameweek, log_timed_step
 from fplmodel.external_history import load_external_histories
 
 from fplmodel.team_picker import pick_best_xi
@@ -78,13 +78,14 @@ def run_pipeline(
 
     try:
         # 1) Pull data
-        logger.info("Fetching bootstrap static data...")
-        bootstrap = fetch_bootstrap_static(force=force_refetch)
+        with log_timed_step(logger, "Fetching bootstrap static data"):
+            bootstrap = fetch_bootstrap_static(force=force_refetch)
 
-        logger.info("Fetching fixtures data...")
-        fixtures = fetch_fixtures_all(force=force_refetch)
+        with log_timed_step(logger, "Fetching fixtures data"):
+            fixtures = fetch_fixtures_all(force=force_refetch)
 
-        norms = normalize_bootstrap(bootstrap)
+        with log_timed_step(logger, "Normalising bootstrap data"):
+            norms = normalize_bootstrap(bootstrap)
         elements_df, teams_df, events_df = norms["elements"], norms["teams"], norms["events"]
         logger.info(
             "Loaded normalised frames: %d elements, %d teams, %d events",
@@ -133,8 +134,11 @@ def run_pipeline(
 
         # 2) Player histories (bulk)
         player_ids = elements_df["player_id"].tolist()
-        logger.info("Fetching player histories for %d players (force_refetch=%s)", len(player_ids), force_refetch)
-        bulk_fetch_player_histories(player_ids, force=force_refetch, sleep_s=0.0)
+        with log_timed_step(
+            logger,
+            f"Fetching player histories for {len(player_ids)} players (force_refetch={force_refetch})",
+        ):
+            bulk_fetch_player_histories(player_ids, force=force_refetch, sleep_s=0.0)
 
         # 3) Load histories from disk into one DF
         #    Avoid re-reading thousands of files into memory at once by streaming
@@ -146,13 +150,14 @@ def run_pipeline(
         logger.info("Loading %d player history files from %s", len(raw_files), RAW_DIR)
 
         rows = []
-        for fn in raw_files:
-            with open(RAW_DIR / fn, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            pid = int(fn.split("_")[1].split(".")[0])
-            for h in data.get("history", []):
-                h["player_id"] = pid
-                rows.append(h)
+        with log_timed_step(logger, "Collating player history JSON into dataframe"):
+            for fn in raw_files:
+                with open(RAW_DIR / fn, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                pid = int(fn.split("_")[1].split(".")[0])
+                for h in data.get("history", []):
+                    h["player_id"] = pid
+                    rows.append(h)
         histories_df = pd.DataFrame(rows)
         logger.info("Built player histories dataframe with %d rows", len(histories_df))
 
@@ -161,7 +166,8 @@ def run_pipeline(
             raise RuntimeError("No player history data found.")
 
         if USE_EXTERNAL_HISTORY:
-            external_histories = load_external_histories(EXTERNAL_HISTORY_SEASONS)
+            with log_timed_step(logger, "Loading external history data"):
+                external_histories = load_external_histories(EXTERNAL_HISTORY_SEASONS)
             if external_histories is not None and not external_histories.empty:
                 external_histories = external_histories[
                     external_histories["player_id"].isin(elements_df["player_id"])
@@ -186,9 +192,10 @@ def run_pipeline(
 
         # 4) Build training and next-gw prediction frames
         state = ModelState()
-        X_train, y_train, X_pred = build_training_and_pred_frames(
-            elements_df, teams_df, histories_df, next_gw, last_finished_gw, state
-        )
+        with log_timed_step(logger, "Building training and prediction feature frames"):
+            X_train, y_train, X_pred = build_training_and_pred_frames(
+                elements_df, teams_df, histories_df, next_gw, last_finished_gw, state
+            )
         logger.info(
             "Prepared features: X_train=%s, y_train=%d, X_pred=%s",
             tuple(X_train.shape),
@@ -207,7 +214,8 @@ def run_pipeline(
             "Training feature columns: %s",
             ", ".join(train_features.columns.astype(str)),
         )
-        clf, reg, candidate_models = train_models(train_features, y_train)
+        with log_timed_step(logger, "Training prediction models"):
+            clf, reg, candidate_models = train_models(train_features, y_train)
         log_model_feature_weights(logger, train_features.columns, reg, model_label="regressor")
         log_model_feature_weights(logger, train_features.columns, clf, model_label="classifier")
         logger.info(
@@ -229,17 +237,18 @@ def run_pipeline(
         per_model_corrected_cols: list[str] = []
         ensemble_predictions = None
 
-        for bundle in candidate_models:
-            preds = predict_expected_points(X_pred, bundle.classifier, bundle.regressor, state)
-            suffix = bundle.name
-            raw_col = f"expected_points_raw__{suffix}"
-            corrected_col = f"expected_points__{suffix}"
-            if ensemble_predictions is None:
-                ensemble_predictions = preds[meta_cols].copy()
-            ensemble_predictions[raw_col] = preds["expected_points_raw"].values
-            ensemble_predictions[corrected_col] = preds["expected_points"].values
-            per_model_raw_cols.append(raw_col)
-            per_model_corrected_cols.append(corrected_col)
+        with log_timed_step(logger, "Generating next gameweek predictions"):
+            for bundle in candidate_models:
+                preds = predict_expected_points(X_pred, bundle.classifier, bundle.regressor, state)
+                suffix = bundle.name
+                raw_col = f"expected_points_raw__{suffix}"
+                corrected_col = f"expected_points__{suffix}"
+                if ensemble_predictions is None:
+                    ensemble_predictions = preds[meta_cols].copy()
+                ensemble_predictions[raw_col] = preds["expected_points_raw"].values
+                ensemble_predictions[corrected_col] = preds["expected_points"].values
+                per_model_raw_cols.append(raw_col)
+                per_model_corrected_cols.append(corrected_col)
 
         if ensemble_predictions is None:
             raise RuntimeError("No candidate predictions were generated for the ensemble.")
@@ -283,9 +292,10 @@ def run_pipeline(
 
         # 8) Evaluate last finished GW and update biases (EMA)
         train_like = X_pred[["player_id", "element_type"] + feature_columns].copy()
-        res_df = evaluate_last_finished_gw_and_update_state(
-            clf, reg, train_like, histories_df, last_finished_gw, state
-        )
+        with log_timed_step(logger, "Evaluating last finished gameweek residuals"):
+            res_df = evaluate_last_finished_gw_and_update_state(
+                clf, reg, train_like, histories_df, last_finished_gw, state
+            )
         if res_df is not None and len(res_df):
             logger.info("Residuals computed for %d players in GW %s", len(res_df), last_finished_gw)
         else:
@@ -293,10 +303,11 @@ def run_pipeline(
 
         # 9) Best XI selection
         logger.info("Selecting best XI from %d candidates", len(predictions))
-        team = pick_best_xi(
-            predictions[["player_id", "full_name", "team_name", "team_id", "element_type", "now_cost_millions", "expected_points"]],
-            formations=FORMATION_OPTIONS,
-        )
+        with log_timed_step(logger, "Optimising best XI selection"):
+            team = pick_best_xi(
+                predictions[["player_id", "full_name", "team_name", "team_id", "element_type", "now_cost_millions", "expected_points"]],
+                formations=FORMATION_OPTIONS,
+            )
         logger.info(
             "Selected squad: total cost %.1fM | starting cost %.1fM | bench cost %.1fM",
             team["total_cost"],
@@ -367,7 +378,8 @@ def run_pipeline(
             json.dump(team, f, indent=2)
         logger.info("Best XI JSON saved to %s", team_json)
 
-        team_image = create_best_xi_graphic(team, gameweek=next_gw)
+        with log_timed_step(logger, "Rendering best XI graphic"):
+            team_image = create_best_xi_graphic(team, gameweek=next_gw)
         logger.info("Best XI graphic generated at %s", team_image)
 
         # Residuals summary

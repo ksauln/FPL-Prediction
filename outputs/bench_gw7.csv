@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-328,Ryan Sessegnon,Fulham,10,3,5.4,4.522064071592423,0,1,0,1,BOU (A)
-200,Jaidon Anthony,Burnley,3,3,5.7,4.328420567079986,0,1,0,2,AVL (A)
-681,Benjamin Sesko,Man Utd,14,4,7.3,4.198091267007138,0,1,0,3,SUN (H)
-366,Alisson Becker,Liverpool,12,1,5.4,2.841878697613106,0,1,0,4,CHE (A)
+226,Trevoh Chalobah,Chelsea,7,2,5.1,5.722035934590119,0,1,0,1,LIV (H)
+681,Benjamin Sesko,Man Utd,14,4,7.3,5.07694497398338,0,1,0,2,SUN (H)
+668,Granit Xhaka,Sunderland,17,3,5.0,4.984173346722781,0,1,0,3,MUN (A)
+366,Alisson Becker,Liverpool,12,1,5.4,4.1451014454444906,0,1,0,4,CHE (A)

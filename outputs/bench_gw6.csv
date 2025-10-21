@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-205,Josh Cullen,Burnley,3,3,5.0,4.945194306571732,0,1,0,1,MCI (A)
-709,Ladislav Krejcí,Wolves,20,2,4.5,4.6338659281510655,0,1,0,2,TOT (A)
-430,Erling Haaland,Man City,13,4,14.5,4.529684300969851,0,1,0,3,BUR (H)
-670,Robin Roefs,Sunderland,17,1,4.6,3.4816328773308136,0,1,0,4,NFO (A)
+430,Erling Haaland,Man City,13,4,14.7,5.949046046080905,0,1,0,1,BUR (H)
+694,Nordi Mukiele,Sunderland,17,2,4.0,5.5730331418309005,0,1,0,2,NFO (A)
+249,João Pedro Junqueira de Jesus,Chelsea,7,4,7.5,4.605980207979675,0,1,0,3,BHA (H)
+469,Nick Pope,Newcastle,15,1,5.2,4.432516666441433,0,1,0,4,ARS (H)

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import logging
+import time
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple
+from typing import Iterator, Tuple
 
 from .config import LOGS_DIR
 
@@ -42,6 +44,29 @@ def configure_run_logger(run_id: str | None = None) -> Tuple[logging.Logger, log
 
     logger.info("Logging initialised. Writing to %s", log_path)
     return logger, file_handler, log_path
+
+
+@contextmanager
+def log_timed_step(
+    logger: logging.Logger,
+    description: str,
+    level: int = logging.INFO,
+) -> Iterator[None]:
+    """
+    Context manager that logs the start and completion time for an expensive step.
+    """
+    clean_description = description.rstrip(".")
+    logger.log(level, "%s...", clean_description)
+    start = time.perf_counter()
+    try:
+        yield
+    except Exception:
+        duration = time.perf_counter() - start
+        logger.log(level, "%s failed after %.2fs", clean_description, duration)
+        raise
+    else:
+        duration = time.perf_counter() - start
+        logger.log(level, "%s completed in %.2fs", clean_description, duration)
 
 
 def update_log_filename_for_gameweek(

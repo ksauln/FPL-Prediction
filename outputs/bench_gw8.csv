@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-475,Sven Botman,Newcastle,15,2,4.9,5.366905863324946,0,1,0,1,BHA (A)
-64,Ollie Watkins,Aston Villa,2,4,8.7,5.098126177620378,0,1,0,2,TOT (A)
-477,Tino Livramento,Newcastle,15,2,5.0,5.051606186562197,0,1,0,3,BHA (A)
-314,Bernd Leno,Fulham,10,1,5.0,5.259969459722117,0,1,0,4,ARS (H)
+64,Ollie Watkins,Aston Villa,2,4,8.6,5.775422591586168,0,1,0,1,TOT (A)
+200,Jaidon Anthony,Burnley,3,3,5.7,5.019541346542461,0,1,0,2,LEE (H)
+38,Ezri Konsa Ngoyo,Aston Villa,2,2,4.5,4.991273991351704,0,1,0,3,TOT (A)
+736,Gianluigi Donnarumma,Man City,13,1,5.7,5.629345274659641,0,1,0,4,EVE (H)

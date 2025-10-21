@@ -1082,11 +1082,12 @@ def _transfer_recommender_page() -> None:
 
     metadata = result["metadata"]
 
-    metrics = st.columns(4)
+    metrics = st.columns(5)
     metrics[0].metric("Transfers suggested", len(result["recommended_transfers"]))
     metrics[1].metric("Free transfers used", metadata["free_transfers_used"])
-    metrics[2].metric("Extra transfers", metadata["additional_transfers"])
-    metrics[3].metric(
+    metrics[2].metric("Paid transfers (hits)", metadata["additional_transfers"])
+    metrics[3].metric("Free transfers remaining", metadata["free_transfers_remaining"])
+    metrics[4].metric(
         "Optimal projected points with transfers",
         f"{metadata['total_expected_points_optimal']:.2f}",
     )

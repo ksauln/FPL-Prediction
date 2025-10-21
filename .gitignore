@@ -9,6 +9,7 @@ __pycache__/
 
 # Environment / secret files
 .env
+secrets.toml
 
 # Jupyter checkpoints
 .ipynb_checkpoints/

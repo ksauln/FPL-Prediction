@@ -226,13 +226,20 @@ def recommend_transfers(
                     }
                 )
 
+    total_transfers = len(transfer_suggestions)
+    free_transfers_used = min(total_transfers, free_transfers)
+    paid_transfers_used = max(0, total_transfers - free_transfers)
+    free_transfers_remaining = max(0, free_transfers - free_transfers_used)
+
     return {
         "user_team": user_summary.as_dict(),
         "optimal_team": optimal_team,
         "recommended_transfers": transfer_suggestions,
         "metadata": {
-            "free_transfers_used": min(len(transfer_suggestions), free_transfers),
-            "additional_transfers": max(0, len(transfer_suggestions) - free_transfers),
+            "free_transfers_used": free_transfers_used,
+            "additional_transfers": paid_transfers_used,
+            "paid_transfers_used": paid_transfers_used,
+            "free_transfers_remaining": free_transfers_remaining,
             "total_expected_points_current": user_summary.total_expected_points_with_captain,
             "total_expected_points_optimal": float(optimal_team["total_expected_points_with_captain"]),
         },
