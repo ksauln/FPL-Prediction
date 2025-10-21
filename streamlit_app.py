@@ -20,6 +20,10 @@ from fplmodel.transfer_recommender import (
     recommend_transfers,
 )
 from fplmodel.display_metrics import PlayerComparisonDependencies, render_player_comparison_page
+from fplmodel.team_performance_display import (
+    TeamPerformanceDependencies,
+    render_team_performance_page,
+)
 from fplmodel.utils import get_current_and_last_finished_gw
 
 
@@ -45,6 +49,11 @@ TAB_STYLE = """
 SESSION_USER_TEAM_KEY = "user_team_df"
 SESSION_CAPTAIN_OVERRIDE_KEY = "user_team_captain_override"
 SESSION_FPL_TEAM_CACHE = "fpl_team_cache"
+SESSION_SHARED_FPL_ID = "shared_fpl_id"
+
+
+def _store_shared_fpl_id(fpl_id: int) -> None:
+    st.session_state[SESSION_SHARED_FPL_ID] = int(fpl_id)
 
 
 def _extract_gw_from_path(path: Path) -> Optional[int]:
@@ -795,6 +804,17 @@ def _team_comparison_page() -> None:
         )
         captain_override = stored_captain
     elif team_input_method == fpl_option:
+        if (
+            SESSION_SHARED_FPL_ID in st.session_state
+            and "comparison_fpl_id" not in st.session_state
+        ):
+            st.session_state["comparison_fpl_id"] = str(
+                st.session_state[SESSION_SHARED_FPL_ID]
+            )
+        elif SESSION_SHARED_FPL_ID in st.session_state:
+            shared_value = str(st.session_state[SESSION_SHARED_FPL_ID])
+            if st.session_state.get("comparison_fpl_id") != shared_value:
+                st.session_state["comparison_fpl_id"] = shared_value
         fpl_id_value = st.text_input(
             "Enter your FPL team ID",
             key="comparison_fpl_id",
@@ -808,6 +828,7 @@ def _team_comparison_page() -> None:
         except ValueError:
             st.error("FPL ID must be an integer.")
             return
+        _store_shared_fpl_id(fpl_id)
 
         if last_finished_gw is None:
             st.error("Unable to determine the last finished gameweek from bootstrap data.")
@@ -931,6 +952,19 @@ def _team_comparison_page() -> None:
         "Expected goals/assists/clean sheets are per 90 values sourced from the latest FPL bootstrap data."
     )
 
+def _team_performance_page() -> None:
+    deps = TeamPerformanceDependencies(
+        load_bootstrap_events=_load_bootstrap_events,
+        last_finished_gameweek=_last_finished_gameweek,
+        load_actual_points_for_gw=_load_actual_points_for_gw,
+        load_bootstrap_elements_df=_load_bootstrap_elements_df,
+        load_bootstrap_teams_df=_load_bootstrap_teams_df,
+    )
+    default_fpl_id = st.session_state.get(SESSION_SHARED_FPL_ID)
+    used_fpl_id = render_team_performance_page(deps, default_fpl_id=default_fpl_id)
+    if used_fpl_id is not None:
+        _store_shared_fpl_id(used_fpl_id)
+
 def _player_comparison_page() -> None:
     deps = PlayerComparisonDependencies(
         load_predictions_for_horizon=_load_predictions_for_horizon,
@@ -1023,6 +1057,17 @@ def _transfer_recommender_page() -> None:
             stored_team_df.copy(), base_predictions, gameweek=selected_gws[0]
         )
     elif team_input_method == fpl_team_option:
+        if (
+            SESSION_SHARED_FPL_ID in st.session_state
+            and "transfer_fpl_id" not in st.session_state
+        ):
+            st.session_state["transfer_fpl_id"] = str(
+                st.session_state[SESSION_SHARED_FPL_ID]
+            )
+        elif SESSION_SHARED_FPL_ID in st.session_state:
+            shared_value = str(st.session_state[SESSION_SHARED_FPL_ID])
+            if st.session_state.get("transfer_fpl_id") != shared_value:
+                st.session_state["transfer_fpl_id"] = shared_value
         fpl_id_value = st.text_input(
             "Enter your FPL team ID",
             key="transfer_fpl_id",
@@ -1036,6 +1081,7 @@ def _transfer_recommender_page() -> None:
         except ValueError:
             st.error("FPL ID must be an integer.")
             return
+        _store_shared_fpl_id(fpl_id)
 
         if last_finished_gw is None:
             st.error("Unable to determine the last finished gameweek from bootstrap data.")
@@ -1161,6 +1207,7 @@ def _transfer_recommender_page() -> None:
 PAGES = {
     "Optimal Team": _optimal_team_page,
     "Team Comparison": _team_comparison_page,
+    "Team Performance": _team_performance_page,
     "Transfer Recommender": _transfer_recommender_page,
     "Player Comparison Lab": _player_comparison_page,
 }
