@@ -25,8 +25,8 @@ secrets.toml
 
 # Model artifacts
 models/*.joblib
-regressor.joblib
-classifier.joblib
+models/regressor.joblib
+models/classifier.joblib
 models/*.pkl
 #models/state.json
 #models/model_selection_summary.csv
