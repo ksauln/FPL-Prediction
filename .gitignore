@@ -23,8 +23,10 @@ secrets.toml
 #data/external/
 #cache/
 
-# Model artefacts
+# Model artifacts
 models/*.joblib
+regressor.joblib
+classifier.joblib
 models/*.pkl
 #models/state.json
 #models/model_selection_summary.csv
