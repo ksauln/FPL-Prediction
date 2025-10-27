@@ -299,10 +299,11 @@ def build_training_and_pred_frames(
     next_gw: int,
     last_finished_gw: int,
     state: ModelState,
-) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
+) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.DataFrame]:
     """
     Returns:
-      X_train (DataFrame), y_train (Series of total_points), X_pred (DataFrame for next_gw)
+      X_train (DataFrame), y_train (Series of total_points), X_pred (DataFrame for next_gw),
+      train_metadata (season/round info aligned with X_train)
     """
     elements_enhanced = _prepare_player_static_features(elements_df)
 
@@ -429,6 +430,8 @@ def build_training_and_pred_frames(
     train_rows = base[(base["enough_prev"]) & (base["round"] <= last_finished_gw)].copy()
     X_train = train_rows[feature_cols].fillna(0.0)
     y_train = train_rows["total_points"].astype(float)
+    metadata_cols = [c for c in ("season_name", "round", "kickoff_time") if c in train_rows.columns]
+    train_metadata = train_rows[metadata_cols].copy() if metadata_cols else pd.DataFrame(index=train_rows.index)
 
     # PRED: need last_finished features to forecast next_gw per player (use most recent row per player <= last_finished_gw)
     last_rows = base[base["round"] <= last_finished_gw].sort_values(["player_id","round"]).groupby("player_id").tail(1)
@@ -469,7 +472,7 @@ def build_training_and_pred_frames(
     X_pred_features = last_rows[feature_cols].fillna(0.0)
     # Return both meta and features separately for convenience
     X_pred = X_pred.join(X_pred_features.reset_index(drop=True))
-    return X_train, y_train, X_pred
+    return X_train, y_train, X_pred, train_metadata
 
 def expand_for_double_gw(pred_df: pd.DataFrame, fixtures_df: pd.DataFrame, next_gw: int) -> pd.DataFrame:
     """

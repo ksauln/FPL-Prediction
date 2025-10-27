@@ -193,7 +193,7 @@ def run_pipeline(
         # 4) Build training and next-gw prediction frames
         state = ModelState()
         with log_timed_step(logger, "Building training and prediction feature frames"):
-            X_train, y_train, X_pred = build_training_and_pred_frames(
+            X_train, y_train, X_pred, train_metadata = build_training_and_pred_frames(
                 elements_df, teams_df, histories_df, next_gw, last_finished_gw, state
             )
         logger.info(
@@ -215,7 +215,7 @@ def run_pipeline(
             ", ".join(train_features.columns.astype(str)),
         )
         with log_timed_step(logger, "Training prediction models"):
-            clf, reg, candidate_models = train_models(train_features, y_train)
+            clf, reg, candidate_models = train_models(train_features, y_train, train_metadata)
         log_model_feature_weights(logger, train_features.columns, reg, model_label="regressor")
         log_model_feature_weights(logger, train_features.columns, clf, model_label="classifier")
         logger.info(

@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-226,Trevoh Chalobah,Chelsea,7,2,5.1,5.722035934590119,0,1,0,1,LIV (H)
-681,Benjamin Sesko,Man Utd,14,4,7.3,5.07694497398338,0,1,0,2,SUN (H)
-668,Granit Xhaka,Sunderland,17,3,5.0,4.984173346722781,0,1,0,3,MUN (A)
-366,Alisson Becker,Liverpool,12,1,5.4,4.1451014454444906,0,1,0,4,CHE (A)
+681,Benjamin Sesko,Man Utd,14,4,7.3,3.5787258269202384,0,1,0,1,SUN (H)
+673,João Maria Lobo Alves Palhares Costa Palhinha Gonçalves,Spurs,18,3,5.5,3.5294621035577016,0,1,0,2,LEE (A)
+293,Jake O'Brien,Everton,9,2,5.0,3.070006549188412,0,1,0,3,CRY (H)
+736,Gianluigi Donnarumma,Man City,13,1,5.7,2.129083995288772,0,1,0,4,BRE (A)

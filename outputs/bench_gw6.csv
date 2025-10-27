@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-430,Erling Haaland,Man City,13,4,14.7,5.949046046080905,0,1,0,1,BUR (H)
-694,Nordi Mukiele,Sunderland,17,2,4.0,5.5730331418309005,0,1,0,2,NFO (A)
-249,João Pedro Junqueira de Jesus,Chelsea,7,4,7.5,4.605980207979675,0,1,0,3,BHA (H)
-469,Nick Pope,Newcastle,15,1,5.2,4.432516666441433,0,1,0,4,ARS (H)
+683,Omar Alderete,Sunderland,17,2,4.1,2.9961839892084874,0,1,0,1,NFO (A)
+249,João Pedro Junqueira de Jesus,Chelsea,7,4,7.5,2.1721580686046824,0,1,0,2,BHA (H)
+430,Erling Haaland,Man City,13,4,14.7,1.920137134290406,0,1,0,3,BUR (H)
+469,Nick Pope,Newcastle,15,1,5.2,2.1204429157515907,0,1,0,4,ARS (H)

@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-110,Michael Kayode,Brentford,5,2,4.5,4.99626761747607,0,1,0,1,NEW (H)
-178,Danny Welbeck,Brighton,6,4,6.3,4.35881827795537,0,1,0,2,CRY (A)
-350,Brenden Aaronson,Leeds,11,3,5.4,4.280392837327613,0,1,0,3,NFO (A)
-182,James Trafford,Man City,13,1,4.7,4.275744514341889,0,1,0,4,LIV (H)
+573,Djed Spence,Spurs,18,2,4.5,3.9710678899448384,0,1,0,1,MUN (H)
+178,Danny Welbeck,Brighton,6,4,6.4,3.9466844536170615,0,1,0,2,CRY (A)
+256,Daniel Muñoz Mejía,Crystal Palace,8,2,5.6,3.709232292798996,0,1,0,3,BHA (H)
+565,Guglielmo Vicario,Spurs,18,1,5.1,3.880641262648058,0,1,0,4,MUN (H)

@@ -36,11 +36,11 @@ EXTERNAL_HISTORY_SEASONS = ["2020-21", "2021-22", "2022-23", "2023-24", "2024-25
 ENABLE_GPU_TRAINING = True  # attempt to use GPU-accelerated models when available
 
 # Feature engineering
-ROLLING_WINDOWS = [4]
+ROLLING_WINDOWS = [5]
 MIN_MATCHES_FOR_FEATURES = 3  # min previous matches required to generate a training row
 
 # Bias-correction (EMA) applied after each finished GW
-EMA_ALPHA = 0.25  # weight of the most recent residual
+EMA_ALPHA = 0.15  # smooth bias correction across ~3 GWs to damp one-off spikes
 
 # Feature selection
 FEATURE_CORRELATION_THRESHOLD = 0.90
@@ -51,6 +51,10 @@ ENABLE_HYPERPARAM_TUNING = True
 HYPERPARAM_TUNING_MIN_SAMPLES = 300
 HYPERPARAM_TUNING_ITER = 12
 HYPERPARAM_TUNING_CV = 3
+
+# Sample weighting across seasons (newest season weight=1.0, prior seasons decay)
+SEASON_WEIGHT_DECAY = 0.7
+SEASON_WEIGHT_MIN = 0.25
 
 # Model hyperparams (baseline defaults; tuning will explore around these)
 REG_PARAMS = dict(  # HistGradientBoostingRegressor
@@ -147,7 +151,7 @@ SQUAD_POSITION_LIMITS = {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
 BENCH_SIZE = 4
 BENCH_GK_COUNT = 1
 MAX_PER_TEAM = 3
-BENCH_EP_WEIGHT = 1.0  # weight for bench expected points in optimization objective
+BENCH_EP_WEIGHT = 0.25  # de-emphasise bench EP so starters drive the objective
 
 # Training window: set None to use all finished GWs
 MAX_TRAIN_GW = None

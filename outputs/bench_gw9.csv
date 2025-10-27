@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-205,Josh Cullen,Burnley,3,3,5.0,6.183782596180733,0,1,0,1,WOL (A)
-676,Lesley Ugochukwu,Burnley,3,3,5.0,5.905154650558386,0,1,0,2,WOL (A)
-624,Jarrod Bowen,West Ham,19,4,7.8,4.05860870892197,0,1,0,3,LEE (A)
-670,Robin Roefs,Sunderland,17,1,4.6,5.013889126246628,0,1,0,4,CHE (A)
+261,Chris Richards,Crystal Palace,8,2,4.5,4.045525303617834,0,1,0,1,ARS (A)
+205,Josh Cullen,Burnley,3,3,5.0,3.9255766410971145,0,1,0,2,WOL (A)
+283,Jean-Philippe Mateta,Crystal Palace,8,4,7.7,3.0699017007033222,0,1,0,3,ARS (A)
+670,Robin Roefs,Sunderland,17,1,4.6,4.590198848394953,0,1,0,4,CHE (A)

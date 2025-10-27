@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from functools import lru_cache
+import re
 import warnings
 
 import joblib
@@ -19,7 +20,12 @@ from sklearn.ensemble import (
 )
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import RandomizedSearchCV, cross_val_score
+from sklearn.model_selection import (
+    BaseCrossValidator,
+    RandomizedSearchCV,
+    TimeSeriesSplit,
+    cross_val_score,
+)
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -35,6 +41,8 @@ from .config import (
     HYPERPARAM_TUNING_MIN_SAMPLES,
     HYPERPARAM_TUNING_ITER,
     HYPERPARAM_TUNING_CV,
+    SEASON_WEIGHT_DECAY,
+    SEASON_WEIGHT_MIN,
     REG_PARAM_DISTRIBUTIONS,
     CLF_PARAM_DISTRIBUTIONS,
     RF_REG_PARAM_DISTRIBUTIONS,
@@ -118,6 +126,204 @@ def _param_space_size(param_grid: dict[str, Sequence]) -> int:
         total *= len(values)
     return total
 
+
+_SEASON_SORT_COL = "__season_sort__"
+_ROUND_SORT_COL = "__round_sort__"
+_KICKOFF_SORT_COL = "__kickoff_sort__"
+
+
+def _season_start_year(label: Any) -> int | None:
+    if label is None or (isinstance(label, float) and np.isnan(label)):
+        return None
+    if isinstance(label, (int, np.integer)):
+        return int(label)
+    if isinstance(label, str):
+        match = re.search(r"(\d{4})", label)
+        if match:
+            try:
+                return int(match.group(1))
+            except ValueError:
+                return None
+        return None
+    try:
+        return int(label)
+    except (TypeError, ValueError):
+        return None
+
+
+def _season_sort_key(label: Any) -> tuple[int, str]:
+    year = _season_start_year(label)
+    sentinel = 10**6
+    if year is None:
+        return (sentinel, "" if label is None else str(label))
+    return (year, "" if label is None else str(label))
+
+
+def _season_rank(series: pd.Series | None) -> pd.Series:
+    if series is None:
+        return pd.Series(dtype=float)
+    if series.empty:
+        return pd.Series(np.nan, index=series.index, dtype=float)
+    valid = series.dropna()
+    if valid.empty:
+        return pd.Series(np.nan, index=series.index, dtype=float)
+    valid_str = valid.astype(str)
+    unique_sorted = sorted(valid_str.unique(), key=_season_sort_key)
+    mapping = {season: idx for idx, season in enumerate(unique_sorted)}
+
+    def mapper(val: Any) -> float:
+        if pd.isna(val):
+            return np.nan
+        return float(mapping.get(str(val), np.nan))
+
+    return series.astype(object).map(mapper)
+
+
+def _compute_season_sample_weights(season_series: pd.Series) -> pd.Series:
+    if season_series.empty:
+        return pd.Series(np.ones(len(season_series)), index=season_series.index, dtype=float)
+    valid = season_series.dropna()
+    if valid.empty:
+        return pd.Series(np.ones(len(season_series)), index=season_series.index, dtype=float)
+    valid_str = valid.astype(str)
+    unique_sorted = sorted(valid_str.unique(), key=_season_sort_key)
+    n = len(unique_sorted)
+    if n == 0:
+        return pd.Series(np.ones(len(season_series)), index=season_series.index, dtype=float)
+
+    weights: dict[str, float] = {}
+    for rank, season in enumerate(unique_sorted):
+        exponent = (n - 1) - rank
+        weight = max(SEASON_WEIGHT_MIN, SEASON_WEIGHT_DECAY ** exponent)
+        weights[season] = float(weight)
+
+    def weight_lookup(val: Any) -> float:
+        if pd.isna(val):
+            return 1.0
+        return float(weights.get(str(val), 1.0))
+
+    return season_series.astype(object).map(weight_lookup).astype(float)
+
+
+def _build_time_series_cv(
+    metadata: pd.DataFrame,
+    max_splits: int,
+    n_samples: int,
+) -> BaseCrossValidator | None:
+    if metadata is None or metadata.empty:
+        return None
+    if n_samples < 3:
+        return None
+    if _SEASON_SORT_COL not in metadata.columns or _ROUND_SORT_COL not in metadata.columns:
+        return None
+
+    time_keys = (
+        metadata[[_SEASON_SORT_COL, _ROUND_SORT_COL]]
+        .dropna()
+        .drop_duplicates()
+        .sort_values(by=[_SEASON_SORT_COL, _ROUND_SORT_COL])
+    )
+    if time_keys.empty:
+        return None
+
+    possible_splits = min(len(time_keys) - 1, n_samples - 1)
+    if possible_splits < 2:
+        return None
+
+    n_splits = min(max_splits, possible_splits)
+    if n_splits < 2:
+        return None
+
+    return TimeSeriesSplit(n_splits=n_splits)
+
+
+def _prepare_training_temporal_order(
+    X: pd.DataFrame,
+    y: pd.Series | np.ndarray,
+    metadata: pd.DataFrame | None,
+) -> tuple[
+    pd.DataFrame,
+    pd.Series,
+    pd.DataFrame,
+    np.ndarray | None,
+    BaseCrossValidator | None,
+    pd.Series | None,
+]:
+    if not isinstance(y, pd.Series):
+        y = pd.Series(y, index=X.index)
+    else:
+        y = y.reindex(X.index)
+
+    if metadata is None:
+        metadata = pd.DataFrame(index=X.index)
+    else:
+        metadata = metadata.reindex(X.index).copy()
+
+    season_series = metadata.get("season_name")
+    season_rank = _season_rank(season_series) if season_series is not None else pd.Series(index=X.index, dtype=float)
+    if season_rank.empty:
+        season_rank = pd.Series(np.arange(len(metadata), dtype=float), index=metadata.index)
+    if season_rank.notna().any():
+        fill_value = float(season_rank.max(skipna=True)) + 1.0
+        season_sort = season_rank.fillna(fill_value)
+    else:
+        season_sort = pd.Series(np.arange(len(metadata), dtype=float), index=metadata.index)
+    metadata[_SEASON_SORT_COL] = season_sort
+
+    if "round" in metadata.columns:
+        round_numeric = pd.to_numeric(metadata["round"], errors="coerce")
+        if round_numeric.notna().any():
+            fallback = float(round_numeric.max(skipna=True)) + 1.0
+            round_sort = round_numeric.fillna(fallback)
+        else:
+            round_sort = pd.Series(np.arange(len(metadata), dtype=float), index=metadata.index)
+    else:
+        round_sort = pd.Series(np.arange(len(metadata), dtype=float), index=metadata.index)
+    metadata[_ROUND_SORT_COL] = round_sort
+
+    if "kickoff_time" in metadata.columns:
+        kickoff_sort = pd.to_datetime(metadata["kickoff_time"], errors="coerce")
+        kickoff_sort = kickoff_sort.fillna(pd.Timestamp("1900-01-01"))
+    else:
+        kickoff_sort = pd.Series([pd.Timestamp("1900-01-01")] * len(metadata), index=metadata.index)
+    metadata[_KICKOFF_SORT_COL] = kickoff_sort
+
+    metadata_sorted = metadata.sort_values(
+        by=[_SEASON_SORT_COL, _ROUND_SORT_COL, _KICKOFF_SORT_COL],
+        kind="mergesort",
+    )
+    order_idx = metadata_sorted.index
+    X_sorted = X.loc[order_idx].reset_index(drop=True)
+    y_sorted = y.loc[order_idx].reset_index(drop=True)
+    metadata_sorted = metadata_sorted.reset_index(drop=True)
+
+    sample_weight_series: pd.Series | None = None
+    sample_weight: np.ndarray | None = None
+    if "season_name" in metadata_sorted.columns and metadata_sorted["season_name"].notna().any():
+        sample_weight_series = _compute_season_sample_weights(metadata_sorted["season_name"])
+        sample_weight = sample_weight_series.to_numpy()
+
+    cv_strategy = _build_time_series_cv(metadata_sorted, HYPERPARAM_TUNING_CV, len(X_sorted))
+
+    metadata_clean = metadata_sorted.drop(
+        columns=[_SEASON_SORT_COL, _ROUND_SORT_COL, _KICKOFF_SORT_COL],
+        errors="ignore",
+    )
+
+    return X_sorted, y_sorted, metadata_clean, sample_weight, cv_strategy, sample_weight_series
+
+
+def _cv_split_count(
+    cv: BaseCrossValidator | int,
+    X: pd.DataFrame,
+    y: pd.Series | np.ndarray,
+) -> int:
+    if isinstance(cv, int):
+        return int(cv)
+    try:
+        return int(cv.get_n_splits(X, y))
+    except TypeError:
+        return int(cv.get_n_splits())
 def _should_tune(y: Sequence, require_two_classes: bool = False) -> bool:
     if not ENABLE_HYPERPARAM_TUNING:
         return False
@@ -143,29 +349,34 @@ def _fit_with_optional_tuning(
     scoring: str | None = None,
     require_two_classes: bool = False,
     override_params: dict[str, Any] | None = None,
+    cv: BaseCrossValidator | int | None = None,
+    sample_weight: np.ndarray | None = None,
 ) -> Pipeline:
+    fit_params: dict[str, Any] = {}
+    if sample_weight is not None:
+        fit_params["est__sample_weight"] = sample_weight
     if override_params:
         pipeline.set_params(**override_params)
-        pipeline.fit(X, y)
+        pipeline.fit(X, y, **fit_params)
         return pipeline
     if param_distributions and _should_tune(y, require_two_classes=require_two_classes):
         n_iter = min(HYPERPARAM_TUNING_ITER, _param_space_size(param_distributions))
         if n_iter <= 0:
-            pipeline.fit(X, y)
+            pipeline.fit(X, y, **fit_params)
             return pipeline
         try:
             search = RandomizedSearchCV(
                 pipeline,
                 param_distributions=param_distributions,
                 n_iter=n_iter,
-                cv=HYPERPARAM_TUNING_CV,
+                cv=cv if cv is not None else min(HYPERPARAM_TUNING_CV, len(y)),
                 scoring=scoring,
                 random_state=RANDOM_SEED,
                 n_jobs=-1,
                 refit=True,
                 error_score="raise",
             )
-            search.fit(X, y)
+            search.fit(X, y, **fit_params)
             logger.info(
                 "Best %s params from tuning: %s (score=%.4f)",
                 label,
@@ -182,7 +393,7 @@ def _fit_with_optional_tuning(
     else:
         if ENABLE_HYPERPARAM_TUNING:
             logger.info("Skipping hyperparameter tuning for %s due to data or configuration.", label)
-    pipeline.fit(X, y)
+    pipeline.fit(X, y, **fit_params)
     return pipeline
 
 
@@ -194,16 +405,23 @@ def _tune_and_score(
     label: str,
     scoring: str,
     require_two_classes: bool = False,
-    cv: int | None = None,
+    cv: BaseCrossValidator | int | None = None,
+    sample_weight: np.ndarray | None = None,
 ) -> tuple[float, float, dict[str, Any] | None]:
     metric_mean = float("nan")
     metric_std = float("nan")
     best_params: dict[str, Any] | None = None
+    fit_params: dict[str, Any] = {}
+    if sample_weight is not None:
+        fit_params["est__sample_weight"] = sample_weight
 
     if param_distributions and _should_tune(y, require_two_classes=require_two_classes):
         cv_splits = cv if cv is not None else min(HYPERPARAM_TUNING_CV, len(y))
+        if cv_splits is None:
+            cv_splits = min(HYPERPARAM_TUNING_CV, len(y))
+        split_count = _cv_split_count(cv_splits, X, y) if cv_splits is not None else 0
         n_iter = min(HYPERPARAM_TUNING_ITER, _param_space_size(param_distributions))
-        if n_iter > 0:
+        if n_iter > 0 and split_count >= 2:
             try:
                 search = RandomizedSearchCV(
                     pipeline_builder(),
@@ -217,7 +435,7 @@ def _tune_and_score(
                     error_score="raise",
                     return_train_score=False,
                 )
-                search.fit(X, y)
+                search.fit(X, y, **fit_params)
                 idx = search.best_index_
                 score_mean = float(search.cv_results_["mean_test_score"][idx])
                 score_std = float(search.cv_results_["std_test_score"][idx])
@@ -242,12 +460,21 @@ def _tune_and_score(
                     label,
                     exc,
                 )
+        elif n_iter > 0:
+            logger.info(
+                "Skipping hyperparameter tuning for %s: insufficient CV splits (got %d).",
+                label,
+                split_count,
+            )
     elif ENABLE_HYPERPARAM_TUNING:
         logger.info("Skipping hyperparameter tuning for %s due to data or configuration.", label)
 
     try:
         cv_splits = cv if cv is not None else min(HYPERPARAM_TUNING_CV, len(y))
-        if cv_splits is None or cv_splits < 2:
+        if cv_splits is None:
+            return metric_mean, metric_std, best_params
+        split_count = _cv_split_count(cv_splits, X, y)
+        if split_count < 2:
             return metric_mean, metric_std, best_params
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=ConvergenceWarning)
@@ -259,6 +486,7 @@ def _tune_and_score(
                 cv=cv_splits,
                 n_jobs=1,
                 error_score=np.nan,
+                fit_params=fit_params,
             )
         if scoring.startswith("neg_"):
             scores = -scores
@@ -545,10 +773,14 @@ def _evaluate_model_candidates(
     X_train: pd.DataFrame,
     y_start: np.ndarray,
     y_points: pd.Series,
+    sample_weight: np.ndarray | None,
+    cv_strategy: BaseCrossValidator | None,
 ) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
 
-    def _cv_splits(n_samples: int) -> int | None:
+    def _cv_splits(n_samples: int) -> BaseCrossValidator | int | None:
+        if cv_strategy is not None:
+            return cv_strategy
         if n_samples < 2:
             return None
         return min(HYPERPARAM_TUNING_CV, n_samples)
@@ -583,6 +815,7 @@ def _evaluate_model_candidates(
                 scoring="balanced_accuracy",
                 require_two_classes=True,
                 cv=clf_cv,
+                sample_weight=sample_weight,
             )
             result["clf_balanced_accuracy"] = mean
             result["clf_balanced_accuracy_std"] = std
@@ -602,6 +835,7 @@ def _evaluate_model_candidates(
                 label=f"regressor[{candidate.name}]",
                 scoring="neg_mean_absolute_error",
                 cv=reg_cv,
+                sample_weight=sample_weight,
             )
             result["reg_mae"] = mean
             result["reg_mae_std"] = std
@@ -646,9 +880,16 @@ def _evaluate_model_candidates(
     return results
 
 
-def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, Pipeline, list[FittedModelBundle]]:
+def train_models(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    metadata: pd.DataFrame | None = None,
+) -> Tuple[Pipeline, Pipeline, list[FittedModelBundle]]:
     """
     Train classifier (starts >=60) and regressor (points) by comparing multiple model families.
+
+    metadata provides optional columns (e.g., season_name, round, kickoff_time) used to
+    construct chronological CV folds and per-season sample weights.
 
     Returns the selected classifier/regressor pipelines plus every fitted candidate pair
     for downstream ensembling.
@@ -665,10 +906,38 @@ def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, P
                 return arr
         return (df.get("total_points_ma3", pd.Series(0, index=df.index)).values >= 2).astype(int)
 
+    X_train, y_train, metadata_sorted, sample_weight, cv_strategy, season_weights = _prepare_training_temporal_order(
+        X_train, y_train, metadata
+    )
+
+    if season_weights is not None and metadata_sorted is not None and "season_name" in metadata_sorted.columns:
+        weight_summary = (
+            pd.DataFrame({"season_name": metadata_sorted["season_name"], "weight": season_weights})
+            .dropna(subset=["season_name"])
+        )
+        if not weight_summary.empty:
+            season_items = sorted(
+                weight_summary.drop_duplicates("season_name").itertuples(index=False),
+                key=lambda row: _season_sort_key(row.season_name),
+            )
+            summary_str = ", ".join(f"{row.season_name}: {row.weight:.2f}" for row in season_items)
+            logger.info("Season sample weights applied: %s", summary_str)
+
+    if cv_strategy is not None:
+        try:
+            n_splits = cv_strategy.get_n_splits()
+        except TypeError:
+            n_splits = cv_strategy.get_n_splits(X_train, y_train)
+        logger.info("Using TimeSeriesSplit with %d folds for hyperparameter tuning.", n_splits)
+    else:
+        logger.info("Using default CV folds for hyperparameter tuning (time splits unavailable).")
+
     y_start = derive_start_target(X_train)
 
     candidates = _build_model_candidates()
-    evaluation_results = _evaluate_model_candidates(candidates, X_train, y_start, y_train)
+    evaluation_results = _evaluate_model_candidates(
+        candidates, X_train, y_start, y_train, sample_weight, cv_strategy
+    )
 
     # Default selections fall back to the first candidate (histogram gradient boosting)
     best_clf_candidate = candidates[0]
@@ -739,6 +1008,8 @@ def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, P
                 scoring="balanced_accuracy",
                 require_two_classes=True,
                 override_params=clf_override_params,
+                cv=cv_strategy,
+                sample_weight=sample_weight,
             )
         except Exception as exc:  # pragma: no cover - defensive fallback
             logger.warning(
@@ -757,6 +1028,8 @@ def train_models(X_train: pd.DataFrame, y_train: pd.Series) -> Tuple[Pipeline, P
                 label=f"regressor[{candidate.name}]",
                 scoring="neg_mean_absolute_error",
                 override_params=reg_override_params,
+                cv=cv_strategy,
+                sample_weight=sample_weight,
             )
         except Exception as exc:  # pragma: no cover - defensive fallback
             logger.warning(

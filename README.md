@@ -119,11 +119,14 @@ This writes `outputs/predictions_gw8.csv` through `outputs/predictions_gw12.csv`
   - Opponent strength metrics (team and opponent rolling form, expected goals conceded, set-piece roles).
   - Bias features (player- and position-level residual signals).
   - Binary indicators for availability, home/away, double/blank weeks.
+  - Training metadata (season/gameweek timestamps) for time-aware CV & weighting.
 - `expand_for_double_gw` multiplies expected points by fixture counts for double/blank adjustments while keeping per-model diagnostics.
 
 ### 4.5 Model Selection & Training (`model.train_models`)
 - Candidate families: histogram gradient boosting (sklearn), random forest, MLP, XGBoost (optional GPU).
 - Optional hyperparameter tuning (`ENABLE_HYPERPARAM_TUNING`) explores search spaces defined in `config.py`.
+- Chronological TimeSeriesSplit CV replaces random folds whenever metadata permits, preventing look-ahead leakage.
+- Per-season sample weights decay older campaigns (configurable via `SEASON_WEIGHT_DECAY` / `SEASON_WEIGHT_MIN`).
 - Saves tuned models and metadata to `models/`.
 - Logs feature importances (`log_model_feature_weights`) for inspection.
 

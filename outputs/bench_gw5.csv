@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-106,Nathan Collins,Brentford,5,2,4.9,5.4024463440620005,0,1,0,1,FUL (A)
-249,João Pedro Junqueira de Jesus,Chelsea,7,4,7.5,5.198148448057243,0,1,0,2,MUN (A)
-430,Erling Haaland,Man City,13,4,14.7,4.950548650465417,0,1,0,3,ARS (A)
-736,Gianluigi Donnarumma,Man City,13,1,5.7,5.576183092951007,0,1,0,4,ARS (A)
+633,Hugo Bueno López,Wolves,20,2,4.4,2.693007101553612,0,1,0,1,LEE (H)
+525,Chris Wood,Nott'm Forest,16,4,7.2,2.183434425541781,0,1,0,2,BUR (A)
+249,João Pedro Junqueira de Jesus,Chelsea,7,4,7.5,2.1509870804647746,0,1,0,3,MUN (A)
+670,Robin Roefs,Sunderland,17,1,4.6,5.279050448438682,0,1,0,4,AVL (H)
