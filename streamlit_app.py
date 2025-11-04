@@ -365,6 +365,10 @@ def _enrich_user_team(
                 "expected_assists_per_90",
                 "clean_sheets_per_90",
                 "expected_goal_involvements_per_90",
+                "status",
+                "news",
+                "chance_of_playing_this_round",
+                "chance_of_playing_next_round",
             ]
         ].rename(columns={"id": "player_id"})
 
@@ -374,6 +378,49 @@ def _enrich_user_team(
         enriched["expected_assists"] = enriched.pop("expected_assists_per_90")
         enriched["expected_clean_sheet"] = enriched.pop("clean_sheets_per_90")
         enriched = enriched.drop(columns=["expected_goal_involvements_per_90"], errors="ignore")
+
+    numeric_cols = [
+        "availability_this_round",
+        "availability_next_round",
+        "status_availability",
+        "status_injury_flag",
+        "injury_risk_flag",
+        "chance_of_playing_this_round",
+        "chance_of_playing_next_round",
+    ]
+    for col in numeric_cols:
+        if col in enriched.columns:
+            enriched[col] = pd.to_numeric(enriched[col], errors="coerce")
+
+    if not enriched.empty:
+        base_bool = pd.Series(False, index=enriched.index)
+        risk_flag = base_bool
+        if "injury_risk_flag" in enriched.columns:
+            risk_flag = pd.to_numeric(enriched["injury_risk_flag"], errors="coerce").fillna(0.0) > 0.0
+        avail_this = base_bool
+        if "availability_this_round" in enriched.columns:
+            avail_this = enriched["availability_this_round"].fillna(1.0) < 1.0
+        avail_next = base_bool
+        if "availability_next_round" in enriched.columns:
+            avail_next = enriched["availability_next_round"].fillna(1.0) < 1.0
+        status_risk = base_bool
+        if "status" in enriched.columns:
+            status_risk = (
+                enriched["status"]
+                .fillna("")
+                .astype(str)
+                .str.lower()
+                .isin({"d", "i", "s", "u", "n"})
+            )
+        injury_risk_series = (risk_flag | avail_this | avail_next | status_risk).fillna(False)
+        enriched["injury_risk"] = injury_risk_series.astype(int)
+        enriched["injury_risk_label"] = injury_risk_series.map({True: "Risk", False: ""})
+        if "availability_this_round" in enriched.columns:
+            chance_pct = pd.to_numeric(enriched["availability_this_round"], errors="coerce") * 100.0
+            chance_pct = chance_pct.round().clip(lower=0.0, upper=100.0)
+            enriched["chance_this_round_pct"] = chance_pct.astype("Int64")
+        else:
+            enriched["chance_this_round_pct"] = pd.Series(pd.NA, index=enriched.index, dtype="Int64")
 
     if gameweek is not None:
         fixture_labels = _fixture_labels_for_gw(gameweek)
@@ -646,6 +693,8 @@ def _format_team_display(df: pd.DataFrame) -> pd.DataFrame:
         "expected_assists",
         "expected_goals",
         "expected_points",
+        "chance_this_round_pct",
+        "injury_risk_label",
         "captain",
         "bench_order",
     ]
@@ -661,6 +710,8 @@ def _format_team_display(df: pd.DataFrame) -> pd.DataFrame:
         "expected_assists": "Expected A",
         "expected_goals": "Expected G",
         "expected_points": "Expected Pts",
+        "chance_this_round_pct": "Chance %",
+        "injury_risk_label": "Injury Risk",
         "captain": "Captain",
         "bench_order": "Bench Order",
     }

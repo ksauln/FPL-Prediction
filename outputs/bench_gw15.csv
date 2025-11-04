@@ -1,0 +1,5 @@
+player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
+217,Lyle Foster,Burnley,3,4,5.0,3.84733775601112,0,1,0,1,NEW (A)
+5,Gabriel dos Santos Magalhães,Arsenal,1,2,6.6,3.681784014290314,0,1,0,2,AVL (A)
+526,Igor Jesus Maciel da Cruz,Nott'm Forest,16,4,5.8,3.152284189021028,0,1,0,3,EVE (A)
+470,Martin Dúbravka,Burnley,3,1,4.0,3.9672526330665008,0,1,0,4,NEW (A)

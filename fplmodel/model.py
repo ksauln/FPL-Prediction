@@ -1167,6 +1167,16 @@ def predict_expected_points(
     ep_corrected = (ep + player_bias + pos_bias) * reliability_np
 
     out = meta.copy()
+    extra_meta_cols = [
+        "availability_this_round",
+        "availability_next_round",
+        "status_availability",
+        "status_injury_flag",
+        "injury_risk_flag",
+    ]
+    for col in extra_meta_cols:
+        if col in X_meta_and_feats.columns:
+            out[col] = X_meta_and_feats[col].values
     out["p_start"] = p_start
     out["points_hat"] = pts_hat
     out["reliability_weight"] = reliability_np

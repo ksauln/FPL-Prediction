@@ -63,6 +63,37 @@ def _prepare_player_static_features(elements_df: pd.DataFrame) -> pd.DataFrame:
     else:
         df["set_piece_duty_score"] = 0.0
 
+    chance_cols = ("chance_of_playing_this_round", "chance_of_playing_next_round")
+    for col in chance_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").clip(lower=0.0, upper=100.0)
+        else:
+            df[col] = np.nan
+
+    status_series = df.get("status")
+    if status_series is not None:
+        status_lower = status_series.fillna("").astype(str).str.lower()
+    else:
+        status_lower = pd.Series("", index=df.index, dtype=str)
+
+    status_availability_map = {
+        "a": 1.0,
+        "d": 0.75,
+        "i": 0.0,
+        "s": 0.0,
+        "u": 0.0,
+        "n": 0.0,
+    }
+    df["status_availability"] = status_lower.map(status_availability_map).fillna(0.5)
+    df["status_injury_flag"] = status_lower.isin({"d", "i"}).astype(int)
+
+    df["availability_this_round"] = df["chance_of_playing_this_round"] / 100.0
+    df["availability_next_round"] = df["chance_of_playing_next_round"] / 100.0
+
+    chance_risk = (df["chance_of_playing_this_round"] < 100) | (df["chance_of_playing_next_round"] < 100)
+    status_risk = status_lower.isin({"d", "i", "s", "u", "n"})
+    df["injury_risk_flag"] = (chance_risk | status_risk).astype(int)
+
     return df
 
 def _safe_numeric(series: pd.Series) -> pd.Series:
@@ -330,6 +361,13 @@ def build_training_and_pred_frames(
         "clean_sheets_per_90",
         "defensive_contribution_per_90",
         "season_minutes",
+        "chance_of_playing_this_round",
+        "chance_of_playing_next_round",
+        "availability_this_round",
+        "availability_next_round",
+        "status_availability",
+        "status_injury_flag",
+        "injury_risk_flag",
         "corners_and_indirect_freekicks_order",
         "direct_freekicks_order",
         "penalties_order",
@@ -410,6 +448,11 @@ def build_training_and_pred_frames(
         "starts_per_90",
         "clean_sheets_per_90",
         "defensive_contribution_per_90",
+        "availability_this_round",
+        "availability_next_round",
+        "status_availability",
+        "status_injury_flag",
+        "injury_risk_flag",
         "corners_and_indirect_freekicks_order",
         "direct_freekicks_order",
         "penalties_order",
