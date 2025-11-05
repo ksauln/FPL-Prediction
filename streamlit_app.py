@@ -211,6 +211,19 @@ def _best_xi_data_for_gw(gameweek: int) -> Optional[Dict[str, object]]:
         return json.load(handle)
 
 
+def _discover_best_xi_files() -> Dict[int, Path]:
+    files: Dict[int, Path] = {}
+    for path in OUTPUTS_DIR.glob("best_xi_gw*.json"):
+        gw = _extract_gw_from_path(path)
+        if gw is not None:
+            files[gw] = path
+    return files
+
+
+def _available_best_xi_gameweeks() -> List[int]:
+    return sorted(_discover_best_xi_files())
+
+
 @st.cache_data(show_spinner=False)
 def _load_bootstrap_data() -> Dict[str, object]:
     path = DATA_DIR / "raw" / "bootstrap-static.json"
@@ -300,6 +313,67 @@ def _summarise_actual_points(
     actual_df["expected_points"] = actual_df["player_id"].map(lambda pid: actual_points.get(int(pid), 0.0))
     summary = summarise_team(actual_df, captain_id=captain_override)
     return summary.total_expected_points_with_captain
+
+
+def _build_optimal_team_performance(gameweek: int) -> Optional[Dict[str, object]]:
+    best_data = _best_xi_data_for_gw(gameweek)
+    if not best_data:
+        return None
+
+    records = list(best_data.get("squad", [])) + list(best_data.get("bench", []))
+    if not records:
+        return None
+
+    team_df = pd.DataFrame(records)
+    if team_df.empty or "player_id" not in team_df.columns:
+        return None
+
+    team_df["player_id"] = team_df["player_id"].astype(int)
+    for col in ("starting", "bench", "captain"):
+        if col not in team_df.columns:
+            team_df[col] = 0
+        team_df[col] = pd.to_numeric(team_df[col], errors="coerce").fillna(0).astype(int)
+    if "bench_order" not in team_df.columns:
+        team_df["bench_order"] = pd.NA
+    team_df["bench_order"] = pd.to_numeric(team_df["bench_order"], errors="coerce")
+
+    if "element_type" in team_df.columns:
+        team_df["position"] = team_df["element_type"].map(POSITION_LABELS)
+    else:
+        team_df["position"] = pd.NA
+
+    captain_id = _infer_captain(team_df)
+
+    predicted_summary = summarise_team(team_df.copy(), captain_id=captain_id)
+
+    actual_points = _load_actual_points_for_gw(gameweek)
+    actual_summary = None
+    if actual_points:
+        actual_df = team_df.copy()
+        actual_df["expected_points"] = actual_df["player_id"].map(
+            lambda pid: float(actual_points.get(int(pid), 0.0))
+        )
+        actual_summary = summarise_team(actual_df, captain_id=captain_id)
+
+    team_df["predicted_points"] = pd.to_numeric(team_df["expected_points"], errors="coerce").fillna(0.0)
+    team_df["actual_points"] = team_df["player_id"].map(
+        lambda pid: float(actual_points.get(int(pid), 0.0))
+    )
+    team_df["points_delta"] = team_df["actual_points"] - team_df["predicted_points"]
+    team_df["captain_flag"] = team_df["captain"].astype(int)
+
+    image_path = _best_xi_image_for_gw(gameweek)
+
+    return {
+        "gameweek": gameweek,
+        "data": best_data,
+        "team_df": team_df,
+        "captain_id": captain_id,
+        "predicted_summary": predicted_summary,
+        "actual_summary": actual_summary,
+        "image_path": image_path,
+        "actual_points_available": bool(actual_points),
+    }
 
 
 def _enrich_user_team(
@@ -1003,6 +1077,190 @@ def _team_comparison_page() -> None:
         "Expected goals/assists/clean sheets are per 90 values sourced from the latest FPL bootstrap data."
     )
 
+
+def _optimal_history_page() -> None:
+    st.header("Optimal Team Results Tracker")
+
+    available_gameweeks = _available_best_xi_gameweeks()
+    if not available_gameweeks:
+        st.info("No stored optimal team files found in `outputs/` yet.")
+        return
+
+    last_finished = _last_finished_gameweek()
+    if last_finished is None:
+        st.info("Unable to determine the last finished gameweek from bootstrap data.")
+        return
+
+    historical_gws = [gw for gw in available_gameweeks if gw <= last_finished]
+    if not historical_gws:
+        st.info("No completed gameweeks with stored optimal teams are available.")
+        return
+
+    performance_rows: List[Dict[str, object]] = []
+    details_by_gw: Dict[int, Dict[str, object]] = {}
+    missing_actual: List[int] = []
+
+    for gw in historical_gws:
+        performance = _build_optimal_team_performance(gw)
+        if not performance:
+            continue
+
+        predicted_summary = performance["predicted_summary"]
+        actual_summary = performance["actual_summary"]
+
+        predicted_total = float(predicted_summary.total_expected_points_with_captain)
+        bench_predicted = float(predicted_summary.bench_expected_points)
+
+        actual_total = None
+        bench_actual = None
+        delta_total = None
+        delta_bench = None
+
+        if actual_summary is not None:
+            actual_total = float(actual_summary.total_expected_points_with_captain)
+            bench_actual = float(actual_summary.bench_expected_points)
+            delta_total = actual_total - predicted_total
+            delta_bench = bench_actual - bench_predicted
+        elif performance.get("actual_points_available") is False:
+            missing_actual.append(gw)
+
+        performance_rows.append(
+            {
+                "Gameweek": gw,
+                "Predicted (XI + C)": predicted_total,
+                "Actual (XI + C)": actual_total,
+                "Delta": delta_total,
+                "Bench Predicted": bench_predicted,
+                "Bench Actual": bench_actual,
+                "Bench Delta": delta_bench,
+            }
+        )
+        details_by_gw[gw] = performance
+
+    if not performance_rows:
+        st.info("No historical optimal team results could be assembled.")
+        return
+
+    summary_df = pd.DataFrame(performance_rows).sort_values("Gameweek").reset_index(drop=True)
+    display_df = summary_df.copy()
+    for col in (
+        "Predicted (XI + C)",
+        "Actual (XI + C)",
+        "Delta",
+        "Bench Predicted",
+        "Bench Actual",
+        "Bench Delta",
+    ):
+        if col in display_df.columns:
+            display_df[col] = display_df[col].map(
+                lambda value: f"{value:.1f}" if pd.notna(value) else "N/A"
+            )
+
+    st.subheader("Summary by Gameweek")
+    st.dataframe(display_df, width="stretch")
+
+    if missing_actual:
+        missing_str = ", ".join(f"GW{gw}" for gw in missing_actual)
+        st.caption(f"Actual score data not found for: {missing_str}.")
+
+    options = summary_df["Gameweek"].tolist()
+    default_index = len(options) - 1
+    selected_gw = st.selectbox("Gameweek breakdown", options=options, index=default_index)
+    selected_details = details_by_gw.get(selected_gw)
+    if not selected_details:
+        st.warning("Selected gameweek details are unavailable.")
+        return
+
+    predicted_summary = selected_details["predicted_summary"]
+    actual_summary = selected_details["actual_summary"]
+    team_df = selected_details["team_df"].copy()
+    captain_id = selected_details.get("captain_id")
+    captain_name = predicted_summary.captain or selected_details["data"].get("captain")
+
+    predicted_total = float(predicted_summary.total_expected_points_with_captain)
+    bench_predicted = float(predicted_summary.bench_expected_points)
+
+    metrics = st.columns(4)
+    metrics[0].metric(
+        "Predicted XI + C",
+        f"{predicted_total:.1f}",
+    )
+
+    if actual_summary is not None:
+        actual_total = float(actual_summary.total_expected_points_with_captain)
+        bench_actual = float(actual_summary.bench_expected_points)
+        metrics[1].metric(
+            "Actual XI + C",
+            f"{actual_total:.1f}",
+            delta=f"{(actual_total - predicted_total):+.1f}",
+        )
+        metrics[2].metric(
+            "Bench actual",
+            f"{bench_actual:.1f}",
+            delta=f"{(bench_actual - bench_predicted):+.1f}",
+        )
+    else:
+        metrics[1].metric("Actual XI + C", "N/A")
+        metrics[2].metric("Bench actual", "N/A")
+
+    captain_predicted = None
+    captain_actual = None
+    if captain_id is not None:
+        captain_row = team_df.loc[team_df["player_id"] == int(captain_id)]
+        if not captain_row.empty:
+            captain_predicted = float(captain_row["predicted_points"].iloc[0])
+            captain_actual = float(captain_row["actual_points"].iloc[0])
+
+    if captain_name and captain_predicted is not None:
+        if actual_summary is not None and captain_actual is not None:
+            metrics[3].metric(
+                f"{captain_name} (C)",
+                f"{captain_actual:.1f}",
+                delta=f"{(captain_actual - captain_predicted):+.1f}",
+            )
+        else:
+            metrics[3].metric(f"{captain_name} (C)", f"{captain_predicted:.1f}")
+    else:
+        metrics[3].metric("Captain", captain_name or "N/A")
+
+    image_path = selected_details.get("image_path")
+    if image_path is not None:
+        st.image(
+            str(image_path),
+            caption=f"Stored best XI visual – GW {selected_gw}",
+            width=1100,
+        )
+
+    team_df = team_df.sort_values(
+        ["starting", "bench_order"],
+        ascending=[False, True],
+        na_position="last",
+    ).reset_index(drop=True)
+    team_df["Role"] = team_df["starting"].map({1: "XI", 0: "Bench"})
+    team_df["Captain"] = team_df["captain_flag"].map({1: "C", 0: ""})
+    team_df["Predicted"] = team_df["predicted_points"].round(1)
+    team_df["Actual"] = team_df["actual_points"].round(1)
+    team_df["Delta"] = team_df["points_delta"].round(1)
+    if "bench_order" in team_df.columns:
+        team_df["Bench Order"] = team_df["bench_order"].astype("Int64").astype(str).replace({"<NA>": ""})
+    columns = ["Role", "Captain", "full_name", "team_name", "position", "Predicted", "Actual", "Delta"]
+    if "next_fixture" in team_df.columns:
+        columns.append("next_fixture")
+    if "Bench Order" in team_df.columns:
+        columns.append("Bench Order")
+    columns = [col for col in columns if col in team_df.columns]
+    display_players = team_df[columns].rename(
+        columns={
+            "full_name": "Player",
+            "team_name": "Team",
+            "position": "Pos",
+            "next_fixture": "Fixture",
+        }
+    )
+    st.subheader(f"GW {selected_gw} squad details")
+    st.dataframe(display_players, width="stretch")
+    st.caption("Actual totals include captaincy points; bench figures are raw bench scores.")
+
 def _team_performance_page() -> None:
     deps = TeamPerformanceDependencies(
         load_bootstrap_events=_load_bootstrap_events,
@@ -1257,6 +1515,7 @@ def _transfer_recommender_page() -> None:
 
 PAGES = {
     "Optimal Team": _optimal_team_page,
+    "Optimal Results": _optimal_history_page,
     "Team Comparison": _team_comparison_page,
     "Team Performance": _team_performance_page,
     "Transfer Recommender": _transfer_recommender_page,
