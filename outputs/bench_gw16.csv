@@ -1,0 +1,5 @@
+player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
+256,Daniel Muñoz Mejía,Crystal Palace,8,2,5.7,3.9624194132423805,0,1,0,1,MCI (H)
+430,Erling Haaland,Man City,13,4,14.8,3.255331442364197,0,1,0,2,CRY (A)
+597,Richarlison de Andrade,Spurs,18,4,6.4,3.1807503143644604,0,1,0,3,NFO (A)
+254,Walter Benítez,Crystal Palace,8,1,4.0,3.8691900489174245,0,1,0,4,MCI (H)

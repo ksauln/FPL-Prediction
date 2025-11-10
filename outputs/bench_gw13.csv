@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-12,Oleksandr Zinchenko,Nott'm Forest,16,2,4.9,3.880360674769129,0,1,0,1,BHA (H)
-430,Erling Haaland,Man City,13,4,14.8,3.8495433696051986,0,1,0,2,LEE (H)
-36,Matty Cash,Aston Villa,2,2,4.6,3.784439140876678,0,1,0,3,WOL (H)
-142,Kjell Scherpen,Brighton,6,1,4.0,3.117825587422599,0,1,0,4,NFO (A)
+430,Erling Haaland,Man City,13,4,14.8,3.9977801472333705,0,1,0,1,LEE (H)
+5,Gabriel dos Santos Magalhães,Arsenal,1,2,6.6,3.6911125128952813,0,1,0,2,CHE (A)
+12,Oleksandr Zinchenko,Nott'm Forest,16,2,4.9,3.6141541445475234,0,1,0,3,BHA (H)
+366,Alisson Becker,Liverpool,12,1,5.4,3.06624638156301,0,1,0,4,WHU (A)

@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-8,Jurriën Timber,Arsenal,1,2,6.1,3.67445677771652,0,1,0,1,BRE (H)
-430,Erling Haaland,Man City,13,4,14.8,3.618687056182754,0,1,0,2,FUL (A)
-342,Jayden Bogle,Leeds,11,2,4.5,3.600679341554227,0,1,0,3,CHE (H)
-142,Kjell Scherpen,Brighton,6,1,4.0,3.5147851876895655,0,1,0,4,AVL (H)
+365,Lukas Nmecha,Leeds,11,4,5.0,3.8745070650798876,0,1,0,1,CHE (H)
+342,Jayden Bogle,Leeds,11,2,4.5,3.648622992074816,0,1,0,2,CHE (H)
+291,James Tarkowski,Everton,9,2,5.4,3.633005501772955,0,1,0,3,BOU (A)
+254,Walter Benítez,Crystal Palace,8,1,4.0,3.675004085192155,0,1,0,4,BUR (A)
