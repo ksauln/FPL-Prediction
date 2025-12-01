@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-256,Daniel Muñoz Mejía,Crystal Palace,8,2,5.7,3.890682587563744,0,1,0,1,FUL (A)
-365,Lukas Nmecha,Leeds,11,4,5.0,3.8274729373944094,0,1,0,2,LIV (H)
-597,Richarlison de Andrade,Spurs,18,4,6.4,3.7930137396536967,0,1,0,3,BRE (H)
-470,Martin Dúbravka,Burnley,3,1,4.0,4.239692159598995,0,1,0,4,NEW (A)
+258,Tyrick Mitchell,Crystal Palace,8,2,5.0,4.347151801578431,0,1,0,1,FUL (A)
+311,Norberto Bercique Gomes Betuncal,Everton,9,4,5.1,4.011895036394088,0,1,0,2,NFO (H)
+365,Lukas Nmecha,Leeds,11,4,5.0,3.9693774860790976,0,1,0,3,LIV (H)
+470,Martin Dúbravka,Burnley,3,1,4.0,3.7791264395338557,0,1,0,4,NEW (A)

@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-365,Lukas Nmecha,Leeds,11,4,5.0,3.8745070650798876,0,1,0,1,CHE (H)
-342,Jayden Bogle,Leeds,11,2,4.5,3.648622992074816,0,1,0,2,CHE (H)
-291,James Tarkowski,Everton,9,2,5.4,3.633005501772955,0,1,0,3,BOU (A)
-254,Walter Benítez,Crystal Palace,8,1,4.0,3.675004085192155,0,1,0,4,BUR (A)
+257,Maxence Lacroix,Crystal Palace,8,2,5.1,4.029773684903665,0,1,0,1,BUR (A)
+714,Nick Woltemade,Newcastle,15,4,7.4,4.028535592808029,0,1,0,2,TOT (H)
+310,Thierno Barry,Everton,9,4,5.7,3.2474485540564775,0,1,0,3,BOU (A)
+736,Gianluigi Donnarumma,Man City,13,1,5.7,4.488744330904177,0,1,0,4,FUL (A)
