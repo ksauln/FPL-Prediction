@@ -1,0 +1,5 @@
+player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
+152,Joël Veltman,Brighton,6,2,4.3,4.4323063122977295,0,1,0,1,WHU (A)
+283,Jean-Philippe Mateta,Crystal Palace,8,4,8.1,4.109697319888493,0,1,0,2,FUL (H)
+362,Joël Piroe,Leeds,11,4,5.0,3.4088074457366107,0,1,0,3,LIV (A)
+182,James Trafford,Man City,13,1,4.6,4.792395329464187,0,1,0,4,SUN (A)

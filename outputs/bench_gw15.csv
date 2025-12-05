@@ -1,5 +1,5 @@
 player_id,full_name,team_name,team_id,element_type,now_cost_millions,expected_points,starting,bench,captain,bench_order,next_fixture
-258,Tyrick Mitchell,Crystal Palace,8,2,5.0,4.347151801578431,0,1,0,1,FUL (A)
-311,Norberto Bercique Gomes Betuncal,Everton,9,4,5.1,4.011895036394088,0,1,0,2,NFO (H)
-365,Lukas Nmecha,Leeds,11,4,5.0,3.9693774860790976,0,1,0,3,LIV (H)
-470,Martin Dúbravka,Burnley,3,1,4.0,3.7791264395338557,0,1,0,4,NEW (A)
+293,Jake O'Brien,Everton,9,2,4.9,4.251231202660275,0,1,0,1,NFO (H)
+311,Norberto Bercique Gomes Betuncal,Everton,9,4,5.1,4.033075201683736,0,1,0,2,NFO (H)
+526,Igor Jesus Maciel da Cruz,Nott'm Forest,16,4,5.8,3.8549349694941113,0,1,0,3,EVE (A)
+182,James Trafford,Man City,13,1,4.6,4.692281690622024,0,1,0,4,SUN (H)
